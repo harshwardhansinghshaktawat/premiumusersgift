@@ -86,6 +86,11 @@ class GrandSereneWelcome extends HTMLElement {
           z-index: 9999;
           font-family: ${s.bodyFont}, sans-serif;
           overflow: hidden;
+          pointer-events: auto;
+        }
+
+        :host(.removing) {
+          pointer-events: none;
         }
 
         .welcome-overlay {
@@ -150,6 +155,11 @@ class GrandSereneWelcome extends HTMLElement {
           width: 300vw;
           height: 300vh;
           opacity: 1;
+        }
+
+        .radial-overlay.fadeout {
+          opacity: 0;
+          transition: opacity 0.5s ease;
         }
 
         .welcome-container {
@@ -554,10 +564,6 @@ class GrandSereneWelcome extends HTMLElement {
   }
 
   hideImmediately() {
-    const overlay = this.shadowRoot.querySelector('.welcome-overlay');
-    if (overlay) {
-      overlay.style.display = 'none';
-    }
     this.style.display = 'none';
     document.body.style.overflow = '';
   }
@@ -591,27 +597,22 @@ class GrandSereneWelcome extends HTMLElement {
         void main() {
           vec2 pos = particlePos;
           
-          // Explosive spiral movement
           vec2 center = vec2(0.5, 0.5);
           vec2 dir = normalize(particlePos - center);
           
-          // Add rotation
           float angle = particleAngle + progress * 3.14159 * 2.0;
           mat2 rotation = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
           dir = rotation * dir;
           
-          // Explosive outward with varying speeds
           float distance = progress * particleSpeed * 2.5;
           pos += dir * distance;
           
-          // Add some wave motion
           pos.x += sin(progress * 6.28 + particleAngle) * 0.05 * progress;
           pos.y += cos(progress * 6.28 + particleAngle) * 0.05 * progress;
           
           vec2 clipSpace = (pos * 2.0 - 1.0) * vec2(1.0, -1.0);
           gl_Position = vec4(clipSpace, 0.0, 1.0);
           
-          // Size grows then shrinks
           float sizeFactor = sin(progress * 3.14159);
           gl_PointSize = particleSize * sizeFactor * 1.5;
           
@@ -635,13 +636,8 @@ class GrandSereneWelcome extends HTMLElement {
             discard;
           }
           
-          // Color transition
           vec3 color = mix(color1, color2, vProgress);
-          
-          // Soft edges
           float alpha = (1.0 - dist * 2.0) * vAlpha;
-          
-          // Add glow
           alpha += (1.0 - dist) * vAlpha * 0.3;
           
           gl_FragColor = vec4(color, alpha);
@@ -698,7 +694,7 @@ class GrandSereneWelcome extends HTMLElement {
   }
 
   initParticles() {
-    const particleCount = 400; // Increased for more luxurious effect
+    const particleCount = 400;
     const positions = [];
     const sizes = [];
     const alphas = [];
@@ -706,21 +702,12 @@ class GrandSereneWelcome extends HTMLElement {
     const speeds = [];
 
     for (let i = 0; i < particleCount; i++) {
-      // Start from center with slight randomness
       const centerX = 0.5 + (Math.random() - 0.5) * 0.1;
       const centerY = 0.5 + (Math.random() - 0.5) * 0.1;
       positions.push(centerX, centerY);
-      
-      // Varying sizes
       sizes.push(Math.random() * 40 + 15);
-      
-      // Varying alphas
       alphas.push(Math.random() * 0.8 + 0.2);
-      
-      // Random angles for rotation
       angles.push(Math.random() * Math.PI * 2);
-      
-      // Varying speeds
       speeds.push(Math.random() * 0.5 + 0.7);
     }
 
@@ -787,8 +774,7 @@ class GrandSereneWelcome extends HTMLElement {
     if (!canvas) return;
 
     if (this.transitionState.active) {
-      // Slower animation for more luxurious feel
-      this.transitionState.progress = Math.min(this.transitionState.progress + 0.006, 1);
+      this.transitionState.progress = Math.min(this.transitionState.progress + 0.01, 1);
 
       this.gl.viewport(0, 0, canvas.width, canvas.height);
       this.gl.clearColor(0, 0, 0, 0);
@@ -797,10 +783,8 @@ class GrandSereneWelcome extends HTMLElement {
       this.gl.useProgram(this.glProgram);
       this.gl.uniform1f(this.glUniforms.progress, this.transitionState.progress);
       this.gl.uniform2f(this.glUniforms.resolution, canvas.width, canvas.height);
-      
-      // Color transition from gold to white
-      this.gl.uniform3f(this.glUniforms.color1, 0.83, 0.69, 0.22); // Gold
-      this.gl.uniform3f(this.glUniforms.color2, 1.0, 1.0, 1.0);    // White
+      this.gl.uniform3f(this.glUniforms.color1, 0.83, 0.69, 0.22);
+      this.gl.uniform3f(this.glUniforms.color2, 1.0, 1.0, 1.0);
 
       const ext = this.gl.getExtension('ANGLE_instanced_arrays');
       if (ext) {
@@ -811,16 +795,22 @@ class GrandSereneWelcome extends HTMLElement {
 
       if (this.transitionState.progress >= 1) {
         this.transitionState.active = false;
-        this.transitionState.progress = 0;
-        canvas.classList.remove('active');
         
-        // Navigate after animation completes
+        // Clean up and navigate
+        const radialOverlay = this.shadowRoot.querySelector('.radial-overlay');
+        if (radialOverlay) {
+          radialOverlay.classList.add('fadeout');
+        }
+        
         setTimeout(() => {
+          // Restore scroll and remove element
+          document.body.style.overflow = '';
+          
+          // Navigate to URL
           if (this.transitionState.targetUrl) {
-            document.body.style.overflow = '';
             window.location.href = this.transitionState.targetUrl;
           }
-        }, 300);
+        }, 500);
       }
     }
 
@@ -838,6 +828,9 @@ class GrandSereneWelcome extends HTMLElement {
     const overlay = this.shadowRoot.querySelector('.welcome-overlay');
     const radialOverlay = this.shadowRoot.querySelector('.radial-overlay');
 
+    // Disable pointer events on host
+    this.classList.add('removing');
+
     // Start transition
     this.transitionState = {
       active: true,
@@ -854,12 +847,10 @@ class GrandSereneWelcome extends HTMLElement {
       radialOverlay.classList.add('active');
     }
 
-    // Hide overlay with delay
-    setTimeout(() => {
-      if (overlay) {
-        overlay.classList.add('hidden');
-      }
-    }, 500);
+    // Hide overlay
+    if (overlay) {
+      overlay.classList.add('hidden');
+    }
 
     // Reinitialize particles
     this.initParticles();
