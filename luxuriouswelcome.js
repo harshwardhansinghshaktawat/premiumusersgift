@@ -57,7 +57,7 @@ class GrandSereneWelcome extends HTMLElement {
       textColor: '#f8f6f1',
       titleFont: 'Cormorant Garamond',
       bodyFont: 'Montserrat',
-      showOnce: true
+      showOnce: 'true' // Changed to string
     };
   }
 
@@ -491,7 +491,10 @@ class GrandSereneWelcome extends HTMLElement {
 
   init() {
     // Check if user has already seen the welcome screen
-    if (this.settings.showOnce) {
+    // Convert string to boolean for comparison
+    const shouldShowOnce = this.settings.showOnce === 'true' || this.settings.showOnce === true;
+    
+    if (shouldShowOnce) {
       const hasSeenWelcome = localStorage.getItem('grandSereneWelcomeSeen');
       if (hasSeenWelcome === 'true') {
         this.hideImmediately();
@@ -736,7 +739,9 @@ class GrandSereneWelcome extends HTMLElement {
 
   closeWelcome(targetUrl) {
     // Mark as seen in localStorage
-    if (this.settings.showOnce) {
+    const shouldShowOnce = this.settings.showOnce === 'true' || this.settings.showOnce === true;
+    
+    if (shouldShowOnce) {
       localStorage.setItem('grandSereneWelcomeSeen', 'true');
     }
 
