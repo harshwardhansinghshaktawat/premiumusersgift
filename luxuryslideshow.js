@@ -7,6 +7,16 @@ class LuxurySlideshow extends HTMLElement {
     this.isTransitioning = false;
     this.autoplayInterval = null;
     this.settings = this.getDefaultSettings();
+    this.gl = null;
+    this.glProgram = null;
+    this.glUniforms = null;
+    this.animationFrameId = null;
+    this.rippleState = {
+      active: false,
+      progress: 0,
+      centerX: 0.5,
+      centerY: 0.5
+    };
   }
 
   static get observedAttributes() {
@@ -111,6 +121,22 @@ class LuxurySlideshow extends HTMLElement {
           background: #0a0a0a;
         }
 
+        #ripple-canvas {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 5;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        #ripple-canvas.active {
+          opacity: 1;
+        }
+
         .slide {
           position: absolute;
           top: 0;
@@ -167,7 +193,7 @@ class LuxurySlideshow extends HTMLElement {
           z-index: 2;
           display: flex;
           align-items: center;
-          padding: 0 8%;
+          padding: 0 140px;
         }
 
         .slide-content {
@@ -184,7 +210,7 @@ class LuxurySlideshow extends HTMLElement {
 
         .slide-content h2 {
           font-family: ${s.titleFont}, serif;
-          font-size: clamp(2.5rem, 6vw, 5rem);
+          font-size: clamp(2rem, 5vw, 5rem);
           font-weight: 700;
           color: ${s.textColor};
           margin-bottom: 1.5rem;
@@ -195,7 +221,7 @@ class LuxurySlideshow extends HTMLElement {
 
         .slide-content p {
           font-family: ${s.bodyFont}, sans-serif;
-          font-size: clamp(1rem, 1.5vw, 1.3rem);
+          font-size: clamp(0.9rem, 1.2vw, 1.3rem);
           font-weight: 300;
           color: #e8e6e0;
           line-height: 1.8;
@@ -322,10 +348,58 @@ class LuxurySlideshow extends HTMLElement {
           box-shadow: 0 0 20px rgba(212, 175, 55, 0.8);
         }
 
+        /* Tablet Landscape */
+        @media (max-width: 1024px) {
+          .content-overlay {
+            padding: 0 100px;
+          }
+
+          .slide-content h2 {
+            font-size: clamp(2rem, 5vw, 4rem);
+          }
+
+          .nav-btn.prev {
+            left: 30px;
+          }
+
+          .nav-btn.next {
+            right: 30px;
+          }
+
+          .slide-number {
+            top: 40px;
+            right: 40px;
+          }
+        }
+
+        /* Tablet Portrait */
         @media (max-width: 768px) {
+          .content-overlay {
+            padding: 80px 80px 120px 80px;
+            align-items: flex-start;
+          }
+
+          .slide-content {
+            margin-top: 60px;
+          }
+
+          .slide-content h2 {
+            font-size: clamp(1.8rem, 6vw, 3rem);
+            margin-bottom: 1rem;
+          }
+
+          .slide-content p {
+            font-size: clamp(0.85rem, 1.2vw, 1.1rem);
+          }
+
           .nav-btn {
             width: 50px;
             height: 50px;
+          }
+
+          .nav-btn svg {
+            width: 24px;
+            height: 24px;
           }
 
           .nav-btn.prev {
@@ -339,14 +413,175 @@ class LuxurySlideshow extends HTMLElement {
           .slide-number {
             top: 30px;
             right: 30px;
+            font-size: 0.9rem;
+          }
+
+          .slide-number .current {
+            font-size: 2rem;
+          }
+
+          .slide-number .divider {
+            width: 20px;
+          }
+
+          .indicators {
+            bottom: 50px;
+            gap: 10px;
+          }
+
+          .indicator {
+            width: 10px;
+            height: 10px;
+          }
+
+          .indicator.active {
+            width: 30px;
+          }
+        }
+
+        /* Mobile Landscape */
+        @media (max-width: 640px) and (orientation: landscape) {
+          .slideshow-container {
+            min-height: 500px;
+          }
+
+          .content-overlay {
+            padding: 60px 90px 100px 90px;
+          }
+
+          .slide-content {
+            margin-top: 20px;
+          }
+
+          .slide-content h2 {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            margin-bottom: 0.8rem;
+          }
+
+          .slide-content p {
+            font-size: clamp(0.8rem, 1vw, 1rem);
+            line-height: 1.6;
+          }
+
+          .indicators {
+            bottom: 30px;
+          }
+        }
+
+        /* Mobile Portrait */
+        @media (max-width: 480px) {
+          .slideshow-container {
+            min-height: 600px;
+          }
+
+          .content-overlay {
+            padding: 100px 20px 140px 20px;
+            align-items: flex-start;
+          }
+
+          .slide-content {
+            margin-top: 40px;
+            max-width: 100%;
+          }
+
+          .slide-content h2 {
+            font-size: clamp(1.8rem, 8vw, 2.5rem);
+            margin-bottom: 1rem;
+          }
+
+          .slide-content p {
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            line-height: 1.7;
+            max-width: 100%;
+          }
+
+          .nav-btn {
+            width: 45px;
+            height: 45px;
+            background: rgba(248, 246, 241, 0.15);
+          }
+
+          .nav-btn svg {
+            width: 20px;
+            height: 20px;
+          }
+
+          .nav-btn.prev {
+            left: 15px;
+          }
+
+          .nav-btn.next {
+            right: 15px;
+          }
+
+          .slide-number {
+            top: 20px;
+            right: 20px;
+            font-size: 0.75rem;
+            gap: 8px;
+          }
+
+          .slide-number .current {
+            font-size: 1.8rem;
+          }
+
+          .slide-number .divider {
+            width: 15px;
           }
 
           .indicators {
             bottom: 40px;
+            gap: 8px;
           }
 
+          .indicator {
+            width: 8px;
+            height: 8px;
+          }
+
+          .indicator.active {
+            width: 24px;
+          }
+
+          .progress-container {
+            height: 2px;
+          }
+        }
+
+        /* Extra Small Devices */
+        @media (max-width: 360px) {
           .content-overlay {
-            padding: 0 5%;
+            padding: 90px 15px 130px 15px;
+          }
+
+          .slide-content h2 {
+            font-size: clamp(1.5rem, 8vw, 2rem);
+          }
+
+          .slide-content p {
+            font-size: clamp(0.85rem, 3vw, 1rem);
+          }
+
+          .nav-btn {
+            width: 40px;
+            height: 40px;
+          }
+
+          .nav-btn.prev {
+            left: 10px;
+          }
+
+          .nav-btn.next {
+            right: 10px;
+          }
+
+          .slide-number {
+            top: 15px;
+            right: 15px;
+          }
+
+          .slide-number .current {
+            font-size: 1.5rem;
           }
         }
       </style>
@@ -380,6 +615,8 @@ class LuxurySlideshow extends HTMLElement {
       <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Montserrat:wght@300;400;500&family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
       ${styles}
       <div class="slideshow-container">
+        <canvas id="ripple-canvas"></canvas>
+        
         ${slides}
         
         <button class="nav-btn prev">
@@ -432,8 +669,167 @@ class LuxurySlideshow extends HTMLElement {
       });
     });
 
+    this.initWebGL();
     this.updateDisplay();
     this.startAutoplay();
+  }
+
+  initWebGL() {
+    try {
+      const canvas = this.shadowRoot.getElementById('ripple-canvas');
+      if (!canvas) return;
+
+      const container = this.shadowRoot.querySelector('.slideshow-container');
+      if (!container) return;
+
+      canvas.width = container.offsetWidth || 800;
+      canvas.height = container.offsetHeight || 600;
+
+      this.gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false });
+      if (!this.gl) {
+        console.log('WebGL not supported, continuing without ripple effect');
+        return;
+      }
+
+      const vertexShaderSource = `
+        attribute vec2 position;
+        varying vec2 vUv;
+        void main() {
+          vUv = position * 0.5 + 0.5;
+          gl_Position = vec4(position, 0.0, 1.0);
+        }
+      `;
+
+      const fragmentShaderSource = `
+        precision mediump float;
+        varying vec2 vUv;
+        uniform float time;
+        uniform vec2 rippleCenter;
+        uniform float rippleProgress;
+        
+        void main() {
+          vec2 uv = vUv;
+          float dist = distance(uv, rippleCenter);
+          
+          float ripple1 = sin((dist - rippleProgress * 1.5) * 15.0);
+          float ripple2 = sin((dist - rippleProgress * 1.2) * 20.0);
+          float ripple = (ripple1 + ripple2) * 0.5;
+          
+          ripple *= smoothstep(1.0, 0.0, abs(dist - rippleProgress * 1.2) * 2.5);
+          ripple *= smoothstep(0.0, 0.2, rippleProgress);
+          ripple *= smoothstep(1.0, 0.8, rippleProgress);
+          
+          vec3 color1 = vec3(0.04, 0.1, 0.18);
+          vec3 color2 = vec3(0.83, 0.69, 0.22);
+          vec3 color = mix(color1, color2, ripple * 0.5 + 0.5);
+          
+          float alpha = abs(ripple) * 0.6 * (1.0 - rippleProgress * 0.8);
+          
+          gl_FragColor = vec4(color, alpha);
+        }
+      `;
+
+      const createShader = (type, source) => {
+        const shader = this.gl.createShader(type);
+        this.gl.shaderSource(shader, source);
+        this.gl.compileShader(shader);
+        
+        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+          console.error('Shader compilation error:', this.gl.getShaderInfoLog(shader));
+          this.gl.deleteShader(shader);
+          return null;
+        }
+        return shader;
+      };
+
+      const vertexShader = createShader(this.gl.VERTEX_SHADER, vertexShaderSource);
+      const fragmentShader = createShader(this.gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+      if (!vertexShader || !fragmentShader) return;
+
+      this.glProgram = this.gl.createProgram();
+      this.gl.attachShader(this.glProgram, vertexShader);
+      this.gl.attachShader(this.glProgram, fragmentShader);
+      this.gl.linkProgram(this.glProgram);
+
+      if (!this.gl.getProgramParameter(this.glProgram, this.gl.LINK_STATUS)) {
+        console.error('Program linking error:', this.gl.getProgramInfoLog(this.glProgram));
+        return;
+      }
+
+      this.gl.useProgram(this.glProgram);
+
+      const positionBuffer = this.gl.createBuffer();
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+      this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([
+        -1, -1,
+         1, -1,
+        -1,  1,
+         1,  1
+      ]), this.gl.STATIC_DRAW);
+
+      const positionLocation = this.gl.getAttribLocation(this.glProgram, 'position');
+      this.gl.enableVertexAttribArray(positionLocation);
+      this.gl.vertexAttribPointer(positionLocation, 2, this.gl.FLOAT, false, 0, 0);
+
+      this.glUniforms = {
+        time: this.gl.getUniformLocation(this.glProgram, 'time'),
+        rippleCenter: this.gl.getUniformLocation(this.glProgram, 'rippleCenter'),
+        rippleProgress: this.gl.getUniformLocation(this.glProgram, 'rippleProgress')
+      };
+
+      this.gl.enable(this.gl.BLEND);
+      this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+
+      this.animateRipple();
+
+    } catch (error) {
+      console.error('WebGL initialization error:', error);
+    }
+  }
+
+  animateRipple(time = 0) {
+    if (!this.gl || !this.glUniforms || !this.glProgram) return;
+
+    const canvas = this.shadowRoot.getElementById('ripple-canvas');
+    if (!canvas) return;
+
+    if (this.rippleState.active) {
+      this.rippleState.progress = Math.min(this.rippleState.progress + 0.012, 1);
+
+      this.gl.viewport(0, 0, canvas.width, canvas.height);
+      this.gl.clearColor(0, 0, 0, 0);
+      this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+      this.gl.useProgram(this.glProgram);
+      this.gl.uniform1f(this.glUniforms.time, time * 0.001);
+      this.gl.uniform2f(this.glUniforms.rippleCenter, this.rippleState.centerX, 1 - this.rippleState.centerY);
+      this.gl.uniform1f(this.glUniforms.rippleProgress, this.rippleState.progress);
+
+      this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+
+      if (this.rippleState.progress >= 1) {
+        this.rippleState.active = false;
+        this.rippleState.progress = 0;
+        canvas.classList.remove('active');
+      }
+    }
+
+    this.animationFrameId = requestAnimationFrame((t) => this.animateRipple(t));
+  }
+
+  triggerRipple() {
+    const canvas = this.shadowRoot.getElementById('ripple-canvas');
+    if (!canvas) return;
+
+    this.rippleState = {
+      active: true,
+      progress: 0,
+      centerX: 0.5,
+      centerY: 0.5
+    };
+
+    canvas.classList.add('active');
   }
 
   changeSlide(direction) {
@@ -443,6 +839,7 @@ class LuxurySlideshow extends HTMLElement {
     this.currentSlide = (this.currentSlide + direction + slideCount) % slideCount;
     
     this.isTransitioning = true;
+    this.triggerRipple();
     this.updateDisplay();
     
     setTimeout(() => {
@@ -457,6 +854,7 @@ class LuxurySlideshow extends HTMLElement {
     
     this.currentSlide = index;
     this.isTransitioning = true;
+    this.triggerRipple();
     this.updateDisplay();
     
     setTimeout(() => {
@@ -521,6 +919,10 @@ class LuxurySlideshow extends HTMLElement {
 
   cleanup() {
     this.stopAutoplay();
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
   }
 }
 
