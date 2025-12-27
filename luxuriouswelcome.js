@@ -37,10 +37,14 @@ class GrandSereneWelcome extends HTMLElement {
   connectedCallback() {
     this.render();
     this.init();
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
   }
 
   disconnectedCallback() {
     this.cleanup();
+    // Restore body scroll
+    document.body.style.overflow = '';
   }
 
   getDefaultSettings() {
@@ -57,7 +61,7 @@ class GrandSereneWelcome extends HTMLElement {
       textColor: '#f8f6f1',
       titleFont: 'Cormorant Garamond',
       bodyFont: 'Montserrat',
-      showOnce: 'true' // Changed to string
+      showOnce: 'true'
     };
   }
 
@@ -77,18 +81,19 @@ class GrandSereneWelcome extends HTMLElement {
           position: fixed;
           top: 0;
           left: 0;
-          width: 100%;
-          height: 100%;
+          width: 100vw;
+          height: 100vh;
           z-index: 9999;
           font-family: ${s.bodyFont}, sans-serif;
+          overflow: hidden;
         }
 
         .welcome-overlay {
           position: fixed;
           top: 0;
           left: 0;
-          width: 100%;
-          height: 100%;
+          width: 100vw;
+          height: 100vh;
           background: linear-gradient(135deg, 
             rgba(10, 25, 47, 0.95) 0%, 
             rgba(10, 25, 47, 0.98) 50%,
@@ -98,7 +103,8 @@ class GrandSereneWelcome extends HTMLElement {
           align-items: center;
           justify-content: center;
           opacity: 1;
-          transition: opacity 0.8s ease;
+          transition: opacity 1.2s ease;
+          overflow: hidden;
         }
 
         .welcome-overlay.hidden {
@@ -110,15 +116,39 @@ class GrandSereneWelcome extends HTMLElement {
           position: fixed;
           top: 0;
           left: 0;
-          width: 100%;
-          height: 100%;
+          width: 100vw;
+          height: 100vh;
           pointer-events: none;
-          z-index: 10000;
+          z-index: 10001;
           opacity: 0;
-          transition: opacity 0.3s ease;
+          transition: opacity 0.5s ease;
         }
 
         #transition-canvas.active {
+          opacity: 1;
+        }
+
+        .radial-overlay {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          width: 0;
+          height: 0;
+          background: radial-gradient(circle, 
+            rgba(212, 175, 55, 0.3) 0%, 
+            rgba(212, 175, 55, 0.1) 30%,
+            transparent 70%);
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 10000;
+          opacity: 0;
+          transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .radial-overlay.active {
+          width: 300vw;
+          height: 300vh;
           opacity: 1;
         }
 
@@ -253,6 +283,7 @@ class GrandSereneWelcome extends HTMLElement {
           display: flex;
           gap: 20px;
           justify-content: center;
+          align-items: center;
           flex-wrap: wrap;
           opacity: 0;
           animation: fadeIn 1s ease 1.1s forwards;
@@ -395,6 +426,7 @@ class GrandSereneWelcome extends HTMLElement {
           .button-group {
             flex-direction: column;
             gap: 15px;
+            align-items: center;
           }
 
           .btn {
@@ -459,6 +491,7 @@ class GrandSereneWelcome extends HTMLElement {
       ${styles}
       
       <canvas id="transition-canvas"></canvas>
+      <div class="radial-overlay"></div>
       
       <div class="welcome-overlay">
         <div class="decorative-pattern"></div>
@@ -490,8 +523,6 @@ class GrandSereneWelcome extends HTMLElement {
   }
 
   init() {
-    // Check if user has already seen the welcome screen
-    // Convert string to boolean for comparison
     const shouldShowOnce = this.settings.showOnce === 'true' || this.settings.showOnce === true;
     
     if (shouldShowOnce) {
@@ -528,6 +559,7 @@ class GrandSereneWelcome extends HTMLElement {
       overlay.style.display = 'none';
     }
     this.style.display = 'none';
+    document.body.style.overflow = '';
   }
 
   initWebGL() {
@@ -549,31 +581,51 @@ class GrandSereneWelcome extends HTMLElement {
         attribute vec2 particlePos;
         attribute float particleSize;
         attribute float particleAlpha;
+        attribute float particleAngle;
+        attribute float particleSpeed;
         uniform float progress;
         uniform vec2 resolution;
         varying float vAlpha;
+        varying float vProgress;
         
         void main() {
-          vec2 pos = particlePos + position * particleSize * 0.01;
+          vec2 pos = particlePos;
           
-          // Explosive outward movement
+          // Explosive spiral movement
           vec2 center = vec2(0.5, 0.5);
           vec2 dir = normalize(particlePos - center);
-          pos += dir * progress * 2.0;
           
-          // Convert to clip space
+          // Add rotation
+          float angle = particleAngle + progress * 3.14159 * 2.0;
+          mat2 rotation = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+          dir = rotation * dir;
+          
+          // Explosive outward with varying speeds
+          float distance = progress * particleSpeed * 2.5;
+          pos += dir * distance;
+          
+          // Add some wave motion
+          pos.x += sin(progress * 6.28 + particleAngle) * 0.05 * progress;
+          pos.y += cos(progress * 6.28 + particleAngle) * 0.05 * progress;
+          
           vec2 clipSpace = (pos * 2.0 - 1.0) * vec2(1.0, -1.0);
           gl_Position = vec4(clipSpace, 0.0, 1.0);
-          gl_PointSize = particleSize * (1.0 - progress * 0.5);
           
-          vAlpha = particleAlpha * (1.0 - progress);
+          // Size grows then shrinks
+          float sizeFactor = sin(progress * 3.14159);
+          gl_PointSize = particleSize * sizeFactor * 1.5;
+          
+          vAlpha = particleAlpha * (1.0 - progress * progress);
+          vProgress = progress;
         }
       `;
 
       const fragmentShaderSource = `
         precision mediump float;
         varying float vAlpha;
-        uniform vec3 color;
+        varying float vProgress;
+        uniform vec3 color1;
+        uniform vec3 color2;
         
         void main() {
           vec2 center = gl_PointCoord - vec2(0.5);
@@ -583,7 +635,15 @@ class GrandSereneWelcome extends HTMLElement {
             discard;
           }
           
+          // Color transition
+          vec3 color = mix(color1, color2, vProgress);
+          
+          // Soft edges
           float alpha = (1.0 - dist * 2.0) * vAlpha;
+          
+          // Add glow
+          alpha += (1.0 - dist) * vAlpha * 0.3;
+          
           gl_FragColor = vec4(color, alpha);
         }
       `;
@@ -618,17 +678,17 @@ class GrandSereneWelcome extends HTMLElement {
 
       this.gl.useProgram(this.glProgram);
 
-      // Initialize particles
       this.initParticles();
 
       this.glUniforms = {
         progress: this.gl.getUniformLocation(this.glProgram, 'progress'),
         resolution: this.gl.getUniformLocation(this.glProgram, 'resolution'),
-        color: this.gl.getUniformLocation(this.glProgram, 'color')
+        color1: this.gl.getUniformLocation(this.glProgram, 'color1'),
+        color2: this.gl.getUniformLocation(this.glProgram, 'color2')
       };
 
       this.gl.enable(this.gl.BLEND);
-      this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+      this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
 
       this.animateTransition();
 
@@ -638,23 +698,32 @@ class GrandSereneWelcome extends HTMLElement {
   }
 
   initParticles() {
-    const particleCount = 200;
+    const particleCount = 400; // Increased for more luxurious effect
     const positions = [];
     const sizes = [];
     const alphas = [];
+    const angles = [];
+    const speeds = [];
 
     for (let i = 0; i < particleCount; i++) {
-      // Random position in normalized space
-      positions.push(Math.random(), Math.random());
+      // Start from center with slight randomness
+      const centerX = 0.5 + (Math.random() - 0.5) * 0.1;
+      const centerY = 0.5 + (Math.random() - 0.5) * 0.1;
+      positions.push(centerX, centerY);
       
-      // Random size
-      sizes.push(Math.random() * 30 + 10);
+      // Varying sizes
+      sizes.push(Math.random() * 40 + 15);
       
-      // Random alpha
-      alphas.push(Math.random() * 0.6 + 0.4);
+      // Varying alphas
+      alphas.push(Math.random() * 0.8 + 0.2);
+      
+      // Random angles for rotation
+      angles.push(Math.random() * Math.PI * 2);
+      
+      // Varying speeds
+      speeds.push(Math.random() * 0.5 + 0.7);
     }
 
-    // Position buffer (for point rendering)
     const posBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, posBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([0, 0]), this.gl.STATIC_DRAW);
@@ -663,7 +732,6 @@ class GrandSereneWelcome extends HTMLElement {
     this.gl.enableVertexAttribArray(posLocation);
     this.gl.vertexAttribPointer(posLocation, 2, this.gl.FLOAT, false, 0, 0);
 
-    // Particle position buffer
     const particlePosBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, particlePosBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(positions), this.gl.STATIC_DRAW);
@@ -673,7 +741,6 @@ class GrandSereneWelcome extends HTMLElement {
     this.gl.vertexAttribPointer(particlePosLocation, 2, this.gl.FLOAT, false, 0, 0);
     this.gl.vertexAttribDivisor(particlePosLocation, 1);
 
-    // Size buffer
     const sizeBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, sizeBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(sizes), this.gl.STATIC_DRAW);
@@ -683,7 +750,6 @@ class GrandSereneWelcome extends HTMLElement {
     this.gl.vertexAttribPointer(sizeLocation, 1, this.gl.FLOAT, false, 0, 0);
     this.gl.vertexAttribDivisor(sizeLocation, 1);
 
-    // Alpha buffer
     const alphaBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, alphaBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(alphas), this.gl.STATIC_DRAW);
@@ -692,6 +758,24 @@ class GrandSereneWelcome extends HTMLElement {
     this.gl.enableVertexAttribArray(alphaLocation);
     this.gl.vertexAttribPointer(alphaLocation, 1, this.gl.FLOAT, false, 0, 0);
     this.gl.vertexAttribDivisor(alphaLocation, 1);
+
+    const angleBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, angleBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(angles), this.gl.STATIC_DRAW);
+    
+    const angleLocation = this.gl.getAttribLocation(this.glProgram, 'particleAngle');
+    this.gl.enableVertexAttribArray(angleLocation);
+    this.gl.vertexAttribPointer(angleLocation, 1, this.gl.FLOAT, false, 0, 0);
+    this.gl.vertexAttribDivisor(angleLocation, 1);
+
+    const speedBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, speedBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(speeds), this.gl.STATIC_DRAW);
+    
+    const speedLocation = this.gl.getAttribLocation(this.glProgram, 'particleSpeed');
+    this.gl.enableVertexAttribArray(speedLocation);
+    this.gl.vertexAttribPointer(speedLocation, 1, this.gl.FLOAT, false, 0, 0);
+    this.gl.vertexAttribDivisor(speedLocation, 1);
 
     this.transitionState.particleCount = particleCount;
   }
@@ -703,7 +787,8 @@ class GrandSereneWelcome extends HTMLElement {
     if (!canvas) return;
 
     if (this.transitionState.active) {
-      this.transitionState.progress = Math.min(this.transitionState.progress + 0.008, 1);
+      // Slower animation for more luxurious feel
+      this.transitionState.progress = Math.min(this.transitionState.progress + 0.006, 1);
 
       this.gl.viewport(0, 0, canvas.width, canvas.height);
       this.gl.clearColor(0, 0, 0, 0);
@@ -712,9 +797,11 @@ class GrandSereneWelcome extends HTMLElement {
       this.gl.useProgram(this.glProgram);
       this.gl.uniform1f(this.glUniforms.progress, this.transitionState.progress);
       this.gl.uniform2f(this.glUniforms.resolution, canvas.width, canvas.height);
-      this.gl.uniform3f(this.glUniforms.color, 0.83, 0.69, 0.22); // Gold color
+      
+      // Color transition from gold to white
+      this.gl.uniform3f(this.glUniforms.color1, 0.83, 0.69, 0.22); // Gold
+      this.gl.uniform3f(this.glUniforms.color2, 1.0, 1.0, 1.0);    // White
 
-      // Use instanced rendering if available
       const ext = this.gl.getExtension('ANGLE_instanced_arrays');
       if (ext) {
         ext.drawArraysInstancedANGLE(this.gl.POINTS, 0, 1, this.transitionState.particleCount);
@@ -727,10 +814,13 @@ class GrandSereneWelcome extends HTMLElement {
         this.transitionState.progress = 0;
         canvas.classList.remove('active');
         
-        // Navigate to the link after transition
-        if (this.transitionState.targetUrl) {
-          window.location.href = this.transitionState.targetUrl;
-        }
+        // Navigate after animation completes
+        setTimeout(() => {
+          if (this.transitionState.targetUrl) {
+            document.body.style.overflow = '';
+            window.location.href = this.transitionState.targetUrl;
+          }
+        }, 300);
       }
     }
 
@@ -738,7 +828,6 @@ class GrandSereneWelcome extends HTMLElement {
   }
 
   closeWelcome(targetUrl) {
-    // Mark as seen in localStorage
     const shouldShowOnce = this.settings.showOnce === 'true' || this.settings.showOnce === true;
     
     if (shouldShowOnce) {
@@ -747,25 +836,32 @@ class GrandSereneWelcome extends HTMLElement {
 
     const canvas = this.shadowRoot.getElementById('transition-canvas');
     const overlay = this.shadowRoot.querySelector('.welcome-overlay');
+    const radialOverlay = this.shadowRoot.querySelector('.radial-overlay');
 
     // Start transition
     this.transitionState = {
       active: true,
       progress: 0,
       targetUrl: targetUrl,
-      particleCount: this.transitionState.particleCount
+      particleCount: this.transitionState.particleCount || 400
     };
 
     if (canvas) {
       canvas.classList.add('active');
     }
 
-    // Hide overlay
-    if (overlay) {
-      overlay.classList.add('hidden');
+    if (radialOverlay) {
+      radialOverlay.classList.add('active');
     }
 
-    // Reinitialize particles for fresh burst
+    // Hide overlay with delay
+    setTimeout(() => {
+      if (overlay) {
+        overlay.classList.add('hidden');
+      }
+    }, 500);
+
+    // Reinitialize particles
     this.initParticles();
   }
 
