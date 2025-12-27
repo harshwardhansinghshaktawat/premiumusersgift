@@ -37,13 +37,11 @@ class GrandSereneWelcome extends HTMLElement {
   connectedCallback() {
     this.render();
     this.init();
-    // Prevent body scroll
     document.body.style.overflow = 'hidden';
   }
 
   disconnectedCallback() {
     this.cleanup();
-    // Restore body scroll
     document.body.style.overflow = '';
   }
 
@@ -85,12 +83,6 @@ class GrandSereneWelcome extends HTMLElement {
           height: 100vh;
           z-index: 9999;
           font-family: ${s.bodyFont}, sans-serif;
-          overflow: hidden;
-          pointer-events: auto;
-        }
-
-        :host(.removing) {
-          pointer-events: none;
         }
 
         .welcome-overlay {
@@ -108,13 +100,11 @@ class GrandSereneWelcome extends HTMLElement {
           align-items: center;
           justify-content: center;
           opacity: 1;
-          transition: opacity 1.2s ease;
-          overflow: hidden;
+          transition: opacity 0.8s ease;
         }
 
         .welcome-overlay.hidden {
           opacity: 0;
-          pointer-events: none;
         }
 
         #transition-canvas {
@@ -126,40 +116,11 @@ class GrandSereneWelcome extends HTMLElement {
           pointer-events: none;
           z-index: 10001;
           opacity: 0;
-          transition: opacity 0.5s ease;
+          transition: opacity 0.3s ease;
         }
 
         #transition-canvas.active {
           opacity: 1;
-        }
-
-        .radial-overlay {
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          width: 0;
-          height: 0;
-          background: radial-gradient(circle, 
-            rgba(212, 175, 55, 0.3) 0%, 
-            rgba(212, 175, 55, 0.1) 30%,
-            transparent 70%);
-          transform: translate(-50%, -50%);
-          border-radius: 50%;
-          pointer-events: none;
-          z-index: 10000;
-          opacity: 0;
-          transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .radial-overlay.active {
-          width: 300vw;
-          height: 300vh;
-          opacity: 1;
-        }
-
-        .radial-overlay.fadeout {
-          opacity: 0;
-          transition: opacity 0.5s ease;
         }
 
         .welcome-container {
@@ -501,7 +462,6 @@ class GrandSereneWelcome extends HTMLElement {
       ${styles}
       
       <canvas id="transition-canvas"></canvas>
-      <div class="radial-overlay"></div>
       
       <div class="welcome-overlay">
         <div class="decorative-pattern"></div>
@@ -549,6 +509,7 @@ class GrandSereneWelcome extends HTMLElement {
     if (bookingBtn) {
       bookingBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        console.log('Booking button clicked, URL:', this.settings.bookingButtonLink);
         this.closeWelcome(this.settings.bookingButtonLink);
       });
     }
@@ -556,6 +517,7 @@ class GrandSereneWelcome extends HTMLElement {
     if (enterBtn) {
       enterBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        console.log('Enter button clicked, URL:', this.settings.enterButtonLink);
         this.closeWelcome(this.settings.enterButtonLink);
       });
     }
@@ -590,13 +552,11 @@ class GrandSereneWelcome extends HTMLElement {
         attribute float particleAngle;
         attribute float particleSpeed;
         uniform float progress;
-        uniform vec2 resolution;
         varying float vAlpha;
         varying float vProgress;
         
         void main() {
           vec2 pos = particlePos;
-          
           vec2 center = vec2(0.5, 0.5);
           vec2 dir = normalize(particlePos - center);
           
@@ -673,12 +633,10 @@ class GrandSereneWelcome extends HTMLElement {
       }
 
       this.gl.useProgram(this.glProgram);
-
       this.initParticles();
 
       this.glUniforms = {
         progress: this.gl.getUniformLocation(this.glProgram, 'progress'),
-        resolution: this.gl.getUniformLocation(this.glProgram, 'resolution'),
         color1: this.gl.getUniformLocation(this.glProgram, 'color1'),
         color2: this.gl.getUniformLocation(this.glProgram, 'color2')
       };
@@ -694,7 +652,7 @@ class GrandSereneWelcome extends HTMLElement {
   }
 
   initParticles() {
-    const particleCount = 400;
+    const particleCount = 300;
     const positions = [];
     const sizes = [];
     const alphas = [];
@@ -774,7 +732,7 @@ class GrandSereneWelcome extends HTMLElement {
     if (!canvas) return;
 
     if (this.transitionState.active) {
-      this.transitionState.progress = Math.min(this.transitionState.progress + 0.01, 1);
+      this.transitionState.progress = Math.min(this.transitionState.progress + 0.015, 1);
 
       this.gl.viewport(0, 0, canvas.width, canvas.height);
       this.gl.clearColor(0, 0, 0, 0);
@@ -782,35 +740,25 @@ class GrandSereneWelcome extends HTMLElement {
 
       this.gl.useProgram(this.glProgram);
       this.gl.uniform1f(this.glUniforms.progress, this.transitionState.progress);
-      this.gl.uniform2f(this.glUniforms.resolution, canvas.width, canvas.height);
       this.gl.uniform3f(this.glUniforms.color1, 0.83, 0.69, 0.22);
       this.gl.uniform3f(this.glUniforms.color2, 1.0, 1.0, 1.0);
 
       const ext = this.gl.getExtension('ANGLE_instanced_arrays');
       if (ext) {
         ext.drawArraysInstancedANGLE(this.gl.POINTS, 0, 1, this.transitionState.particleCount);
-      } else {
-        this.gl.drawArrays(this.gl.POINTS, 0, this.transitionState.particleCount);
       }
 
       if (this.transitionState.progress >= 1) {
         this.transitionState.active = false;
+        console.log('Animation complete, navigating to:', this.transitionState.targetUrl);
         
-        // Clean up and navigate
-        const radialOverlay = this.shadowRoot.querySelector('.radial-overlay');
-        if (radialOverlay) {
-          radialOverlay.classList.add('fadeout');
+        // Hide everything and navigate
+        this.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        if (this.transitionState.targetUrl) {
+          window.location.href = this.transitionState.targetUrl;
         }
-        
-        setTimeout(() => {
-          // Restore scroll and remove element
-          document.body.style.overflow = '';
-          
-          // Navigate to URL
-          if (this.transitionState.targetUrl) {
-            window.location.href = this.transitionState.targetUrl;
-          }
-        }, 500);
       }
     }
 
@@ -826,33 +774,22 @@ class GrandSereneWelcome extends HTMLElement {
 
     const canvas = this.shadowRoot.getElementById('transition-canvas');
     const overlay = this.shadowRoot.querySelector('.welcome-overlay');
-    const radialOverlay = this.shadowRoot.querySelector('.radial-overlay');
 
-    // Disable pointer events on host
-    this.classList.add('removing');
-
-    // Start transition
     this.transitionState = {
       active: true,
       progress: 0,
       targetUrl: targetUrl,
-      particleCount: this.transitionState.particleCount || 400
+      particleCount: 300
     };
 
     if (canvas) {
       canvas.classList.add('active');
     }
 
-    if (radialOverlay) {
-      radialOverlay.classList.add('active');
-    }
-
-    // Hide overlay
     if (overlay) {
       overlay.classList.add('hidden');
     }
 
-    // Reinitialize particles
     this.initParticles();
   }
 
