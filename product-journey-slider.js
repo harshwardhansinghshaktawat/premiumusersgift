@@ -121,17 +121,14 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         :host {
-          display: block;
-          width: 100%;
-          height: 100vh; /* Force Full Screen Height */
-          /* CRITICAL FIX: 
-             'contain: size layout' prevents the element from reporting its size back to Wix 
-             in a way that triggers an infinite resize loop. 
-          */
-          contain: size layout; 
-          overflow: hidden;
-          position: relative;
-        }
+  display: block;
+  width: 100%;
+  height: 100%; /* Use container height instead of viewport */
+  min-height: 0; /* Prevent expansion */
+  contain: size layout; /* Prevent resize loop */
+  overflow: hidden;
+  position: relative;
+}
 
         .slider-container {
           position: absolute;
