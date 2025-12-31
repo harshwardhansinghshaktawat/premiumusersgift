@@ -123,9 +123,9 @@ class ProductJourneySlider extends HTMLElement {
         :host {
   display: block;
   width: 100%;
-  height: 100%; /* Use container height instead of viewport */
-  min-height: 0; /* Prevent expansion */
-  contain: size layout; /* Prevent resize loop */
+  aspect-ratio: 16 / 9; /* Maintains consistent proportions */
+  min-height: 500px;
+  max-height: 100vh;
   overflow: hidden;
   position: relative;
 }
