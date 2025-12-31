@@ -123,13 +123,18 @@ class ProductJourneySlider extends HTMLElement {
         :host {
           display: block;
           width: 100%;
-          height: 100%; /* Fill the Wix Custom Element box */
+          height: 100vh; /* Force Full Screen Height */
+          /* CRITICAL FIX: 
+             'contain: size layout' prevents the element from reporting its size back to Wix 
+             in a way that triggers an infinite resize loop. 
+          */
+          contain: size layout; 
+          overflow: hidden;
           position: relative;
-          overflow: hidden; /* Prevent content from pushing the box size */
         }
 
         .slider-container {
-          position: absolute; /* Vital: Removes element from flow to prevent infinite loop */
+          position: absolute;
           top: 0;
           left: 0;
           width: 100%;
