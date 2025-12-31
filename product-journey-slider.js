@@ -118,6 +118,7 @@ class ProductJourneySlider extends HTMLElement {
           display: block;
           width: 100%;
           height: 100%;
+          min-height: 500px;
           font-family: ${s.bodyFont}, sans-serif;
           position: relative;
           overflow: hidden;
@@ -127,6 +128,7 @@ class ProductJourneySlider extends HTMLElement {
           position: relative;
           width: 100%;
           height: 100%;
+          min-height: 500px;
           overflow: hidden;
           background: ${s.bgDark};
         }
@@ -152,8 +154,7 @@ class ProductJourneySlider extends HTMLElement {
           top: 0;
           left: 0;
           width: 100%;
-          height: 0.3vh;
-          max-height: 3px;
+          height: 3px;
           background: ${s.bgSecondary};
           z-index: 1000;
         }
@@ -182,7 +183,7 @@ class ProductJourneySlider extends HTMLElement {
           opacity: 0;
           visibility: hidden;
           transition: opacity ${s.animationSpeed}ms ease, visibility ${s.animationSpeed}ms ease;
-          padding: 8% 5%;
+          padding: 60px 40px 100px 40px;
         }
 
         .slide.active {
@@ -193,11 +194,11 @@ class ProductJourneySlider extends HTMLElement {
 
         .slide-content {
           width: 100%;
-          max-width: 90%;
+          max-width: 1400px;
           height: 100%;
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 5%;
+          gap: 80px;
           align-items: center;
         }
 
@@ -205,7 +206,6 @@ class ProductJourneySlider extends HTMLElement {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          height: 100%;
           transform: translateX(-100px);
           opacity: 0;
           transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
@@ -218,10 +218,10 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         .accent-line {
-          width: min(100px, 10%);
+          width: 100px;
           height: 2px;
           background: linear-gradient(90deg, ${s.accentCyan}, transparent);
-          margin-bottom: 3%;
+          margin-bottom: 30px;
           opacity: 0;
           transform: translateX(-50px);
           transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -235,13 +235,13 @@ class ProductJourneySlider extends HTMLElement {
 
         .slide-number {
           font-family: ${s.numberFont}, sans-serif;
-          font-size: clamp(2rem, 8vh, 7rem);
+          font-size: clamp(40px, 8vw, 120px);
           line-height: 1;
           background: linear-gradient(135deg, ${s.accentCyan}, ${s.accentPurple});
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          margin-bottom: 2%;
+          margin-bottom: 20px;
           opacity: 0;
           transform: translateY(30px);
           transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -255,10 +255,10 @@ class ProductJourneySlider extends HTMLElement {
 
         .stage-label {
           font-family: ${s.labelFont}, sans-serif;
-          font-size: clamp(1.5rem, 6vh, 5rem);
+          font-size: clamp(30px, 6vw, 80px);
           line-height: 1.1;
-          margin-bottom: 1%;
-          letter-spacing: 0.05em;
+          margin-bottom: 10px;
+          letter-spacing: 2px;
           color: ${s.textPrimary};
           opacity: 0;
           transform: translateY(30px);
@@ -272,12 +272,12 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         .tagline {
-          font-size: clamp(0.65rem, 1.2vh, 1rem);
+          font-size: clamp(11px, 1.2vw, 16px);
           font-weight: 300;
           color: ${s.textSecondary};
           text-transform: uppercase;
-          letter-spacing: 0.2em;
-          margin-bottom: 3%;
+          letter-spacing: 4px;
+          margin-bottom: 30px;
           opacity: 0;
           transform: translateY(20px);
           transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -290,9 +290,10 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         .description {
-          font-size: clamp(0.75rem, 1.5vh, 1.125rem);
-          line-height: 1.7;
+          font-size: clamp(13px, 1.4vw, 18px);
+          line-height: 1.8;
           color: ${s.textSecondary};
+          max-width: 500px;
           opacity: 0;
           transform: translateY(20px);
           transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
@@ -307,6 +308,7 @@ class ProductJourneySlider extends HTMLElement {
         .image-content {
           position: relative;
           height: 100%;
+          max-height: 500px;
           display: flex;
           align-items: center;
           transform: scale(0.9) translateX(100px);
@@ -324,10 +326,9 @@ class ProductJourneySlider extends HTMLElement {
           position: relative;
           width: 100%;
           height: 100%;
-          max-height: 70vh;
-          border-radius: min(20px, 2vh);
+          border-radius: 20px;
           overflow: hidden;
-          box-shadow: 0 4vh 8vh rgba(0, 0, 0, 0.5);
+          box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
         }
 
         .image-wrapper::before {
@@ -360,7 +361,7 @@ class ProductJourneySlider extends HTMLElement {
 
         .navigation {
           position: absolute;
-          right: 3%;
+          right: 40px;
           top: 50%;
           transform: translateY(-50%);
           z-index: 100;
@@ -370,14 +371,14 @@ class ProductJourneySlider extends HTMLElement {
           position: relative;
           display: flex;
           align-items: center;
-          margin: 2vh 0;
+          margin: 25px 0;
           cursor: pointer;
           transition: all 0.3s ease;
         }
 
         .nav-dot {
-          width: min(12px, 1.2vh);
-          height: min(12px, 1.2vh);
+          width: 12px;
+          height: 12px;
           border-radius: 50%;
           background: ${s.bgSecondary};
           border: 2px solid ${s.textMuted};
@@ -400,8 +401,8 @@ class ProductJourneySlider extends HTMLElement {
         .nav-item.active .nav-dot::before {
           content: '';
           position: absolute;
-          width: min(24px, 2.4vh);
-          height: min(24px, 2.4vh);
+          width: 24px;
+          height: 24px;
           border: 2px solid ${s.accentCyan};
           border-radius: 50%;
           top: 50%;
@@ -417,12 +418,12 @@ class ProductJourneySlider extends HTMLElement {
 
         .nav-label {
           position: absolute;
-          right: 2vh;
+          right: 25px;
           white-space: nowrap;
-          font-size: clamp(0.6rem, 1vh, 0.75rem);
+          font-size: 11px;
           font-weight: 600;
           text-transform: uppercase;
-          letter-spacing: 0.1em;
+          letter-spacing: 2px;
           color: ${s.textMuted};
           opacity: 0;
           transform: translateX(10px);
@@ -439,18 +440,18 @@ class ProductJourneySlider extends HTMLElement {
 
         .controls {
           position: absolute;
-          bottom: 5%;
+          bottom: 40px;
           left: 50%;
           transform: translateX(-50%);
           display: flex;
-          gap: 3%;
+          gap: 30px;
           z-index: 100;
         }
 
         .control-btn {
           position: relative;
-          width: min(80px, 8vh);
-          height: min(80px, 8vh);
+          width: 70px;
+          height: 70px;
           border-radius: 50%;
           border: 2px solid rgba(255, 255, 255, 0.2);
           background: rgba(26, 26, 26, 0.6);
@@ -487,7 +488,7 @@ class ProductJourneySlider extends HTMLElement {
         .control-btn:hover {
           border-color: ${s.accentCyan};
           transform: scale(1.1);
-          box-shadow: 0 1vh 4vh rgba(0, 217, 255, 0.3);
+          box-shadow: 0 10px 40px rgba(0, 217, 255, 0.3);
         }
 
         .control-btn:active {
@@ -495,8 +496,8 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         .control-btn svg {
-          width: 30%;
-          height: 30%;
+          width: 24px;
+          height: 24px;
           transition: transform 0.3s ease;
         }
 
@@ -508,11 +509,11 @@ class ProductJourneySlider extends HTMLElement {
         @media (max-width: 1024px) {
           .slide-content {
             grid-template-columns: 1fr;
-            gap: 3%;
+            gap: 40px;
           }
 
           .slide {
-            padding: 10% 5%;
+            padding: 50px 30px 100px 30px;
           }
 
           .text-content {
@@ -522,7 +523,7 @@ class ProductJourneySlider extends HTMLElement {
 
           .image-content {
             transform: none !important;
-            height: 40vh;
+            max-height: 350px;
           }
 
           .slide.active .text-content,
@@ -538,87 +539,89 @@ class ProductJourneySlider extends HTMLElement {
           .description {
             max-width: 100%;
           }
+
+          .navigation {
+            right: 20px;
+          }
         }
 
         @media (max-width: 768px) {
+          .slide {
+            padding: 40px 20px 90px 20px;
+          }
+
+          .slide-content {
+            gap: 30px;
+          }
+
           .navigation {
-            right: 2%;
+            right: 15px;
           }
 
           .nav-item {
-            margin: 1.5vh 0;
+            margin: 20px 0;
           }
 
           .controls {
-            bottom: 3%;
+            bottom: 30px;
+            gap: 25px;
           }
 
           .control-btn {
-            width: min(60px, 7vh);
-            height: min(60px, 7vh);
+            width: 60px;
+            height: 60px;
+          }
+
+          .control-btn svg {
+            width: 20px;
+            height: 20px;
           }
 
           .image-content {
-            height: 35vh;
-          }
-
-          .image-wrapper {
-            max-height: 35vh;
+            max-height: 300px;
           }
         }
 
         @media (max-width: 480px) {
           .slide {
-            padding: 12% 3%;
-          }
-
-          .navigation {
-            right: 1%;
-          }
-
-          .controls {
-            bottom: 2%;
-          }
-
-          .control-btn {
-            width: min(50px, 6vh);
-            height: min(50px, 6vh);
-          }
-
-          .image-content {
-            height: 30vh;
-          }
-
-          .image-wrapper {
-            max-height: 30vh;
-          }
-        }
-
-        /* Small height screens */
-        @media (max-height: 500px) {
-          .slide {
-            padding: 5% 3%;
+            padding: 30px 15px 80px 15px;
           }
 
           .slide-content {
-            grid-template-columns: 1fr 1fr;
-            gap: 3%;
+            gap: 25px;
           }
 
-          .image-wrapper {
-            max-height: 60vh;
+          .navigation {
+            right: 10px;
           }
 
           .controls {
-            bottom: 2%;
+            bottom: 20px;
+            gap: 20px;
           }
 
-          .slide-number {
-            font-size: clamp(1.5rem, 6vh, 4rem);
+          .control-btn {
+            width: 50px;
+            height: 50px;
           }
 
-          .stage-label {
-            font-size: clamp(1.2rem, 4vh, 3rem);
+          .control-btn svg {
+            width: 18px;
+            height: 18px;
+          }
+
+          .image-content {
+            max-height: 250px;
+          }
+
+          .nav-dot {
+            width: 10px;
+            height: 10px;
+          }
+
+          .nav-item.active .nav-dot::before {
+            width: 20px;
+            height: 20px;
           }
         }
       </style>
