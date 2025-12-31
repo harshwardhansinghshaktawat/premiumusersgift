@@ -124,6 +124,7 @@ class ProductJourneySlider extends HTMLElement {
           display: block;
           width: 100%;
           height: 100%;
+          min-height: 500px; /* Critical fix: Prevents collapse if parent height is undefined */
           font-family: ${s.bodyFont}, sans-serif;
           position: relative;
           overflow: hidden;
@@ -533,6 +534,7 @@ class ProductJourneySlider extends HTMLElement {
           .slide.active .text-content,
           .slide.active .image-content {
             transform: none !important;
+            opacity: 1 !important;
           }
 
           .accent-line {
