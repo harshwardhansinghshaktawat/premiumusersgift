@@ -39,6 +39,20 @@ class ProductJourneySlider extends HTMLElement {
 
   connectedCallback() {
     console.log('Product Journey Slider connected');
+    
+    // Set explicit styles on the host element to ensure it has dimensions
+    Object.assign(this.style, {
+      display: 'block',
+      width: '100%',
+      height: '100%',
+      minHeight: '600px',
+      position: 'relative',
+      overflow: 'hidden',
+      padding: '0',
+      margin: '0',
+      boxSizing: 'border-box'
+    });
+
     this.render();
     this.init();
   }
@@ -122,17 +136,10 @@ class ProductJourneySlider extends HTMLElement {
           box-sizing: border-box;
         }
 
-        :host {
-          display: block;
-          width: 100%;
-          height: 100%;
-          font-family: ${s.bodyFont}, sans-serif;
-          position: relative;
-          overflow: hidden;
-        }
-
         .slider-container {
-          position: relative;
+          position: absolute;
+          top: 0;
+          left: 0;
           width: 100%;
           height: 100%;
           overflow: hidden;
@@ -172,7 +179,9 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         .slides-wrapper {
-          position: relative;
+          position: absolute;
+          top: 0;
+          left: 0;
           width: 100%;
           height: 100%;
         }
