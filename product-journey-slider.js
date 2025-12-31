@@ -37,6 +37,10 @@ class ProductJourneySlider extends HTMLElement {
 
   connectedCallback() {
     console.log('Product Journey Slider connected');
+    // Set element dimensions programmatically like ThreeDImageElement
+    this.style.width = '100%';
+    this.style.height = '100%';
+    this.style.display = 'block';
     this.render();
     this.init();
   }
@@ -124,7 +128,6 @@ class ProductJourneySlider extends HTMLElement {
           display: block;
           width: 100%;
           height: 100%;
-          min-height: 500px;
           font-family: ${s.bodyFont}, sans-serif;
           position: relative;
           overflow: hidden;
