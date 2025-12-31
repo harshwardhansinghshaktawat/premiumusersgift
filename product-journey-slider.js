@@ -15,7 +15,6 @@ class ProductJourneySlider extends HTMLElement {
     this.touchEndHandler = null;
     this.isMouseOver = false;
     this.isFullyInView = false;
-    this.resizeObserver = null;
   }
 
   static get observedAttributes() {
@@ -38,11 +37,21 @@ class ProductJourneySlider extends HTMLElement {
 
   connectedCallback() {
     console.log('Product Journey Slider connected');
+    
+    // Set explicit styles like the pie chart example
+    Object.assign(this.style, {
+      display: 'block',
+      width: '100%',
+      height: '600px', // Default height, can be resized by Wix
+      position: 'relative',
+      overflow: 'hidden',
+      padding: '0',
+      margin: '0',
+      boxSizing: 'border-box'
+    });
+    
     this.render();
     this.init();
-    
-    // Setup ResizeObserver to respond to height changes
-    this.setupResizeObserver();
   }
 
   disconnectedCallback() {
@@ -109,20 +118,6 @@ class ProductJourneySlider extends HTMLElement {
     };
   }
 
-  setupResizeObserver() {
-    if ('ResizeObserver' in window) {
-      this.resizeObserver = new ResizeObserver(entries => {
-        for (let entry of entries) {
-          console.log('Element resized:', {
-            width: entry.contentRect.width,
-            height: entry.contentRect.height
-          });
-        }
-      });
-      this.resizeObserver.observe(this);
-    }
-  }
-
   createStyle() {
     const s = this.settings;
     const styleElement = document.createElement('style');
@@ -135,15 +130,8 @@ class ProductJourneySlider extends HTMLElement {
         box-sizing: border-box;
       }
 
-      :host {
-        display: block;
-        width: 100%;
-        height: 100%;
-        position: relative;
-        contain: layout style paint;
-      }
-
       .slider-container {
+        display: block;
         width: 100%;
         height: 100%;
         position: relative;
@@ -777,7 +765,6 @@ class ProductJourneySlider extends HTMLElement {
       });
     });
 
-    // Setup mouse enter/leave detection
     this.addEventListener('mouseenter', () => {
       this.isMouseOver = true;
     });
@@ -786,7 +773,6 @@ class ProductJourneySlider extends HTMLElement {
       this.isMouseOver = false;
     });
 
-    // Setup scroll and touch handlers
     this.setupScrollNavigation();
     this.setupTouchNavigation();
     this.setupViewportDetection();
@@ -800,9 +786,6 @@ class ProductJourneySlider extends HTMLElement {
       const rect = this.getBoundingClientRect();
       const windowHeight = window.innerHeight || document.documentElement.clientHeight;
       
-      // Element is fully visible when:
-      // - Top of element is at top of viewport (with small tolerance)
-      // - Bottom of element is at or below bottom of viewport
       const topAtViewportTop = rect.top <= 50 && rect.top >= -50;
       const fillsViewport = rect.bottom >= windowHeight - 50;
       
@@ -812,36 +795,25 @@ class ProductJourneySlider extends HTMLElement {
     window.addEventListener('scroll', checkViewport, { passive: true });
     window.addEventListener('resize', checkViewport, { passive: true });
     
-    // Initial check
     setTimeout(checkViewport, 100);
   }
 
   setupScrollNavigation() {
     const slideCount = Math.min(Math.max(1, parseInt(this.settings.slideCount) || 5), 8);
 
-    // Remove old listener if exists
     if (this.wheelHandler) {
       document.removeEventListener('wheel', this.wheelHandler);
     }
 
     this.wheelHandler = (e) => {
-      // Only handle scroll when mouse is over AND element is fully in view
       if (!this.isMouseOver || !this.isFullyInView) return;
 
       const scrollingDown = e.deltaY > 0;
       const scrollingUp = e.deltaY < 0;
 
-      // If on first slide and scrolling up, allow page scroll
-      if (this.currentSlide === 0 && scrollingUp) {
-        return;
-      }
+      if (this.currentSlide === 0 && scrollingUp) return;
+      if (this.currentSlide === slideCount - 1 && scrollingDown) return;
 
-      // If on last slide and scrolling down, allow page scroll
-      if (this.currentSlide === slideCount - 1 && scrollingDown) {
-        return;
-      }
-
-      // Prevent page scroll and handle slide change
       e.preventDefault();
       
       if (this.isScrolling) return;
@@ -862,7 +834,6 @@ class ProductJourneySlider extends HTMLElement {
   }
 
   setupTouchNavigation() {
-    // Remove old listeners if exist
     if (this.touchStartHandler) {
       this.removeEventListener('touchstart', this.touchStartHandler);
     }
@@ -1002,9 +973,6 @@ class ProductJourneySlider extends HTMLElement {
     }
     if (this.touchEndHandler) {
       this.removeEventListener('touchend', this.touchEndHandler);
-    }
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
     }
   }
 }
