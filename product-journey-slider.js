@@ -124,7 +124,6 @@ class ProductJourneySlider extends HTMLElement {
           display: block;
           width: 100%;
           height: 100%;
-          min-height: 500px;
           font-family: ${s.bodyFont}, sans-serif;
           position: relative;
           overflow: hidden;
@@ -134,7 +133,6 @@ class ProductJourneySlider extends HTMLElement {
           position: relative;
           width: 100%;
           height: 100%;
-          min-height: 500px;
           overflow: hidden;
           background: ${s.bgDark};
         }
