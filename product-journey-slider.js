@@ -14,6 +14,7 @@ class ProductJourneySlider extends HTMLElement {
     this.touchStartHandler = null;
     this.touchEndHandler = null;
     this.isMouseOver = false;
+    this.isFullyInView = false;
   }
 
   static get observedAttributes() {
@@ -125,7 +126,6 @@ class ProductJourneySlider extends HTMLElement {
           display: block;
           width: 100%;
           height: 100%;
-          min-height: 600px;
           font-family: ${s.bodyFont}, sans-serif;
           position: relative;
           overflow: hidden;
@@ -135,7 +135,6 @@ class ProductJourneySlider extends HTMLElement {
           position: relative;
           width: 100%;
           height: 100%;
-          min-height: 600px;
           overflow: hidden;
           background: ${s.bgDark};
         }
@@ -320,7 +319,6 @@ class ProductJourneySlider extends HTMLElement {
         .image-content {
           position: relative;
           height: 100%;
-          max-height: 500px;
           display: flex;
           align-items: center;
           transform: scale(0.9) translateX(100px);
@@ -338,6 +336,7 @@ class ProductJourneySlider extends HTMLElement {
           position: relative;
           width: 100%;
           height: 100%;
+          max-height: 80%;
           border-radius: 20px;
           overflow: hidden;
           box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
@@ -761,9 +760,29 @@ class ProductJourneySlider extends HTMLElement {
     // Setup scroll and touch handlers
     this.setupScrollNavigation();
     this.setupTouchNavigation();
+    this.setupViewportDetection();
 
     this.updateDisplay();
     this.startAutoplay();
+  }
+
+  setupViewportDetection() {
+    // Check viewport on scroll
+    const checkViewport = () => {
+      const rect = this.getBoundingClientRect();
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+      
+      // Element is fully in viewport when:
+      // - Top is at or above viewport top (rect.top <= 0)
+      // - Bottom is at or below viewport bottom (rect.bottom >= windowHeight)
+      this.isFullyInView = rect.top <= 0 && rect.bottom >= windowHeight;
+    };
+
+    window.addEventListener('scroll', checkViewport);
+    window.addEventListener('resize', checkViewport);
+    
+    // Initial check
+    setTimeout(checkViewport, 100);
   }
 
   setupScrollNavigation() {
@@ -775,16 +794,19 @@ class ProductJourneySlider extends HTMLElement {
     }
 
     this.wheelHandler = (e) => {
-      // Only handle scroll when mouse is over the element
-      if (!this.isMouseOver) return;
+      // Only handle scroll when mouse is over the element AND element is fully in view
+      if (!this.isMouseOver || !this.isFullyInView) return;
+
+      const scrollingDown = e.deltaY > 0;
+      const scrollingUp = e.deltaY < 0;
 
       // If on first slide and scrolling up, allow page scroll
-      if (this.currentSlide === 0 && e.deltaY < 0) {
+      if (this.currentSlide === 0 && scrollingUp) {
         return;
       }
 
-      // If on last slide and scrolling down, allow page scroll
-      if (this.currentSlide === slideCount - 1 && e.deltaY > 0) {
+      // If on last slide and scrolling down, allow page scroll to continue
+      if (this.currentSlide === slideCount - 1 && scrollingDown) {
         return;
       }
 
@@ -798,7 +820,7 @@ class ProductJourneySlider extends HTMLElement {
         this.isScrolling = false;
       }, this.settings.animationSpeed);
 
-      if (e.deltaY > 0) {
+      if (scrollingDown) {
         this.changeSlide(1);
       } else {
         this.changeSlide(-1);
@@ -818,10 +840,12 @@ class ProductJourneySlider extends HTMLElement {
     }
 
     this.touchStartHandler = (e) => {
+      if (!this.isFullyInView) return;
       this.touchStartY = e.changedTouches[0].screenY;
     };
 
     this.touchEndHandler = (e) => {
+      if (!this.isFullyInView) return;
       this.touchEndY = e.changedTouches[0].screenY;
       this.handleSwipe();
     };
