@@ -7,6 +7,12 @@ class ProductJourneySlider extends HTMLElement {
     this.isTransitioning = false;
     this.autoplayInterval = null;
     this.settings = this.getDefaultSettings();
+    this.isScrolling = false;
+    this.touchStartY = 0;
+    this.touchEndY = 0;
+    this.wheelHandler = null;
+    this.touchStartHandler = null;
+    this.touchEndHandler = null;
   }
 
   static get observedAttributes() {
@@ -737,15 +743,123 @@ class ProductJourneySlider extends HTMLElement {
       });
     });
 
+    // Setup scroll and touch handlers
+    this.setupScrollNavigation();
+    this.setupTouchNavigation();
+
     this.updateDisplay();
     this.startAutoplay();
+  }
+
+  setupScrollNavigation() {
+    const slideCount = Math.min(Math.max(1, parseInt(this.settings.slideCount) || 5), 8);
+
+    // Remove old listener if exists
+    if (this.wheelHandler) {
+      window.removeEventListener('wheel', this.wheelHandler);
+    }
+
+    this.wheelHandler = (e) => {
+      // Only handle scroll when element is in viewport
+      const rect = this.getBoundingClientRect();
+      const isInView = rect.top <= window.innerHeight && rect.bottom >= 0;
+      
+      if (!isInView) return;
+
+      // If scrolling down on last slide, allow normal scroll to continue
+      if (this.currentSlide === slideCount - 1 && e.deltaY > 0) {
+        return; // Don't preventDefault, let page scroll continue
+      }
+
+      // If scrolling up on first slide, allow normal scroll to continue
+      if (this.currentSlide === 0 && e.deltaY < 0) {
+        return; // Don't preventDefault, let page scroll continue
+      }
+
+      // Otherwise, prevent default scroll and change slides
+      if (this.isScrolling) return;
+
+      e.preventDefault();
+      
+      this.isScrolling = true;
+      setTimeout(() => {
+        this.isScrolling = false;
+      }, this.settings.animationSpeed);
+
+      if (e.deltaY > 0) {
+        this.changeSlide(1);
+      } else {
+        this.changeSlide(1);
+      }
+    };
+
+    window.addEventListener('wheel', this.wheelHandler, { passive: false });
+  }
+
+  setupTouchNavigation() {
+    // Remove old listeners if exist
+    if (this.touchStartHandler) {
+      window.removeEventListener('touchstart', this.touchStartHandler);
+    }
+    if (this.touchEndHandler) {
+      window.removeEventListener('touchend', this.touchEndHandler);
+    }
+
+    this.touchStartHandler = (e) => {
+      const rect = this.getBoundingClientRect();
+      const isInView = rect.top <= window.innerHeight && rect.bottom >= 0;
+      
+      if (!isInView) return;
+
+      this.touchStartY = e.changedTouches[0].screenY;
+    };
+
+    this.touchEndHandler = (e) => {
+      const rect = this.getBoundingClientRect();
+      const isInView = rect.top <= window.innerHeight && rect.bottom >= 0;
+      
+      if (!isInView) return;
+
+      this.touchEndY = e.changedTouches[0].screenY;
+      this.handleSwipe();
+    };
+
+    window.addEventListener('touchstart', this.touchStartHandler);
+    window.addEventListener('touchend', this.touchEndHandler);
+  }
+
+  handleSwipe() {
+    const slideCount = Math.min(Math.max(1, parseInt(this.settings.slideCount) || 5), 8);
+    const swipeThreshold = 50;
+
+    // Swipe up (next slide)
+    if (this.touchStartY - this.touchEndY > swipeThreshold) {
+      // If on last slide, don't prevent - let page scroll
+      if (this.currentSlide === slideCount - 1) {
+        return;
+      }
+      this.changeSlide(1);
+    }
+
+    // Swipe down (previous slide)
+    if (this.touchEndY - this.touchStartY > swipeThreshold) {
+      // If on first slide, don't prevent - let page scroll
+      if (this.currentSlide === 0) {
+        return;
+      }
+      this.changeSlide(-1);
+    }
   }
 
   changeSlide(direction) {
     if (this.isTransitioning) return;
     
     const slideCount = Math.min(Math.max(1, parseInt(this.settings.slideCount) || 5), 8);
-    const newSlide = (this.currentSlide + direction + slideCount) % slideCount;
+    let newSlide = this.currentSlide + direction;
+
+    // Clamp to valid range (don't loop)
+    if (newSlide < 0) newSlide = 0;
+    if (newSlide >= slideCount) newSlide = slideCount - 1;
 
     if (newSlide === this.currentSlide) return;
 
@@ -807,7 +921,13 @@ class ProductJourneySlider extends HTMLElement {
     const delay = this.settings.autoplayDelay || 5000;
     if (delay > 0) {
       this.autoplayInterval = setInterval(() => {
-        this.changeSlide(1);
+        const slideCount = Math.min(Math.max(1, parseInt(this.settings.slideCount) || 5), 8);
+        // Loop back to first slide when autoplay reaches the end
+        if (this.currentSlide === slideCount - 1) {
+          this.goToSlide(0);
+        } else {
+          this.changeSlide(1);
+        }
       }, delay);
     }
   }
@@ -826,6 +946,17 @@ class ProductJourneySlider extends HTMLElement {
 
   cleanup() {
     this.stopAutoplay();
+    
+    // Remove event listeners
+    if (this.wheelHandler) {
+      window.removeEventListener('wheel', this.wheelHandler);
+    }
+    if (this.touchStartHandler) {
+      window.removeEventListener('touchstart', this.touchStartHandler);
+    }
+    if (this.touchEndHandler) {
+      window.removeEventListener('touchend', this.touchEndHandler);
+    }
   }
 }
 
