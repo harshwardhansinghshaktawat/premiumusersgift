@@ -13,6 +13,7 @@ class ProductJourneySlider extends HTMLElement {
     this.wheelHandler = null;
     this.touchStartHandler = null;
     this.touchEndHandler = null;
+    this.isMouseOver = false;
   }
 
   static get observedAttributes() {
@@ -124,7 +125,6 @@ class ProductJourneySlider extends HTMLElement {
           display: block;
           width: 100%;
           height: 100%;
-          min-height: 500px;
           font-family: ${s.bodyFont}, sans-serif;
           position: relative;
           overflow: hidden;
@@ -134,7 +134,6 @@ class ProductJourneySlider extends HTMLElement {
           position: relative;
           width: 100%;
           height: 100%;
-          min-height: 500px;
           overflow: hidden;
           background: ${s.bgDark};
         }
@@ -189,7 +188,7 @@ class ProductJourneySlider extends HTMLElement {
           opacity: 0;
           visibility: hidden;
           transition: opacity ${s.animationSpeed}ms ease, visibility ${s.animationSpeed}ms ease;
-          padding: 60px 40px 100px 40px;
+          padding: 5% 4% 8% 4%;
         }
 
         .slide.active {
@@ -200,11 +199,11 @@ class ProductJourneySlider extends HTMLElement {
 
         .slide-content {
           width: 100%;
-          max-width: 1400px;
+          max-width: 90%;
           height: 100%;
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 80px;
+          gap: 5%;
           align-items: center;
         }
 
@@ -212,6 +211,7 @@ class ProductJourneySlider extends HTMLElement {
           display: flex;
           flex-direction: column;
           justify-content: center;
+          height: 100%;
           transform: translateX(-100px);
           opacity: 0;
           transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
@@ -224,13 +224,14 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         .accent-line {
-          width: 100px;
+          width: min(100px, 15%);
           height: 2px;
           background: linear-gradient(90deg, ${s.accentCyan}, transparent);
-          margin-bottom: 30px;
+          margin-bottom: 4%;
           opacity: 0;
           transform: translateX(-50px);
           transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          flex-shrink: 0;
         }
 
         .slide.active .accent-line {
@@ -241,16 +242,17 @@ class ProductJourneySlider extends HTMLElement {
 
         .slide-number {
           font-family: ${s.numberFont}, sans-serif;
-          font-size: clamp(40px, 8vw, 120px);
-          line-height: 1;
+          font-size: clamp(2rem, 12vh, 8rem);
+          line-height: 0.9;
           background: linear-gradient(135deg, ${s.accentCyan}, ${s.accentPurple});
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          margin-bottom: 20px;
+          margin-bottom: 3%;
           opacity: 0;
           transform: translateY(30px);
           transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          flex-shrink: 0;
         }
 
         .slide.active .slide-number {
@@ -261,14 +263,15 @@ class ProductJourneySlider extends HTMLElement {
 
         .stage-label {
           font-family: ${s.labelFont}, sans-serif;
-          font-size: clamp(30px, 6vw, 80px);
-          line-height: 1.1;
-          margin-bottom: 10px;
-          letter-spacing: 2px;
+          font-size: clamp(1.5rem, 8vh, 5rem);
+          line-height: 1;
+          margin-bottom: 2%;
+          letter-spacing: 0.05em;
           color: ${s.textPrimary};
           opacity: 0;
           transform: translateY(30px);
           transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          flex-shrink: 0;
         }
 
         .slide.active .stage-label {
@@ -278,15 +281,16 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         .tagline {
-          font-size: clamp(11px, 1.2vw, 16px);
+          font-size: clamp(0.65rem, 1.5vh, 1rem);
           font-weight: 300;
           color: ${s.textSecondary};
           text-transform: uppercase;
-          letter-spacing: 4px;
-          margin-bottom: 30px;
+          letter-spacing: 0.2em;
+          margin-bottom: 4%;
           opacity: 0;
           transform: translateY(20px);
           transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          flex-shrink: 0;
         }
 
         .slide.active .tagline {
@@ -296,13 +300,14 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         .description {
-          font-size: clamp(13px, 1.4vw, 18px);
-          line-height: 1.8;
+          font-size: clamp(0.8rem, 2vh, 1.125rem);
+          line-height: 1.7;
           color: ${s.textSecondary};
-          max-width: 500px;
           opacity: 0;
           transform: translateY(20px);
           transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          overflow-y: auto;
+          max-height: 40%;
         }
 
         .slide.active .description {
@@ -314,7 +319,6 @@ class ProductJourneySlider extends HTMLElement {
         .image-content {
           position: relative;
           height: 100%;
-          max-height: 500px;
           display: flex;
           align-items: center;
           transform: scale(0.9) translateX(100px);
@@ -332,9 +336,10 @@ class ProductJourneySlider extends HTMLElement {
           position: relative;
           width: 100%;
           height: 100%;
-          border-radius: 20px;
+          max-height: 100%;
+          border-radius: min(20px, 2vh);
           overflow: hidden;
-          box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+          box-shadow: 0 4vh 8vh rgba(0, 0, 0, 0.5);
         }
 
         .image-wrapper::before {
@@ -367,7 +372,7 @@ class ProductJourneySlider extends HTMLElement {
 
         .navigation {
           position: absolute;
-          right: 40px;
+          right: 3%;
           top: 50%;
           transform: translateY(-50%);
           z-index: 100;
@@ -377,14 +382,14 @@ class ProductJourneySlider extends HTMLElement {
           position: relative;
           display: flex;
           align-items: center;
-          margin: 25px 0;
+          margin: 2vh 0;
           cursor: pointer;
           transition: all 0.3s ease;
         }
 
         .nav-dot {
-          width: 12px;
-          height: 12px;
+          width: min(12px, 1.2vh);
+          height: min(12px, 1.2vh);
           border-radius: 50%;
           background: ${s.bgSecondary};
           border: 2px solid ${s.textMuted};
@@ -407,8 +412,8 @@ class ProductJourneySlider extends HTMLElement {
         .nav-item.active .nav-dot::before {
           content: '';
           position: absolute;
-          width: 24px;
-          height: 24px;
+          width: min(24px, 2.4vh);
+          height: min(24px, 2.4vh);
           border: 2px solid ${s.accentCyan};
           border-radius: 50%;
           top: 50%;
@@ -424,12 +429,12 @@ class ProductJourneySlider extends HTMLElement {
 
         .nav-label {
           position: absolute;
-          right: 25px;
+          right: 2vh;
           white-space: nowrap;
-          font-size: 11px;
+          font-size: clamp(0.6rem, 1.2vh, 0.75rem);
           font-weight: 600;
           text-transform: uppercase;
-          letter-spacing: 2px;
+          letter-spacing: 0.1em;
           color: ${s.textMuted};
           opacity: 0;
           transform: translateX(10px);
@@ -446,18 +451,18 @@ class ProductJourneySlider extends HTMLElement {
 
         .controls {
           position: absolute;
-          bottom: 40px;
+          bottom: 4%;
           left: 50%;
           transform: translateX(-50%);
           display: flex;
-          gap: 30px;
+          gap: 3%;
           z-index: 100;
         }
 
         .control-btn {
           position: relative;
-          width: 70px;
-          height: 70px;
+          width: min(70px, 8vh);
+          height: min(70px, 8vh);
           border-radius: 50%;
           border: 2px solid rgba(255, 255, 255, 0.2);
           background: rgba(26, 26, 26, 0.6);
@@ -494,7 +499,7 @@ class ProductJourneySlider extends HTMLElement {
         .control-btn:hover {
           border-color: ${s.accentCyan};
           transform: scale(1.1);
-          box-shadow: 0 10px 40px rgba(0, 217, 255, 0.3);
+          box-shadow: 0 1vh 4vh rgba(0, 217, 255, 0.3);
         }
 
         .control-btn:active {
@@ -502,8 +507,8 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         .control-btn svg {
-          width: 24px;
-          height: 24px;
+          width: 30%;
+          height: 30%;
           transition: transform 0.3s ease;
         }
 
@@ -515,11 +520,11 @@ class ProductJourneySlider extends HTMLElement {
         @media (max-width: 1024px) {
           .slide-content {
             grid-template-columns: 1fr;
-            gap: 40px;
+            gap: 3%;
           }
 
           .slide {
-            padding: 50px 30px 100px 30px;
+            padding: 8% 4% 12% 4%;
           }
 
           .text-content {
@@ -529,7 +534,7 @@ class ProductJourneySlider extends HTMLElement {
 
           .image-content {
             transform: none !important;
-            max-height: 350px;
+            height: 40%;
           }
 
           .slide.active .text-content,
@@ -544,90 +549,70 @@ class ProductJourneySlider extends HTMLElement {
 
           .description {
             max-width: 100%;
+            max-height: none;
           }
 
           .navigation {
-            right: 20px;
+            right: 2%;
           }
         }
 
         @media (max-width: 768px) {
           .slide {
-            padding: 40px 20px 90px 20px;
+            padding: 10% 3% 15% 3%;
           }
 
           .slide-content {
-            gap: 30px;
+            gap: 2%;
           }
 
           .navigation {
-            right: 15px;
+            right: 1.5%;
           }
 
           .nav-item {
-            margin: 20px 0;
+            margin: 1.5vh 0;
           }
 
           .controls {
-            bottom: 30px;
-            gap: 25px;
-          }
-
-          .control-btn {
-            width: 60px;
-            height: 60px;
-          }
-
-          .control-btn svg {
-            width: 20px;
-            height: 20px;
+            bottom: 3%;
           }
 
           .image-content {
-            max-height: 300px;
+            height: 35%;
           }
         }
 
         @media (max-width: 480px) {
           .slide {
-            padding: 30px 15px 80px 15px;
-          }
-
-          .slide-content {
-            gap: 25px;
+            padding: 12% 2% 18% 2%;
           }
 
           .navigation {
-            right: 10px;
+            right: 1%;
           }
 
           .controls {
-            bottom: 20px;
-            gap: 20px;
+            bottom: 2%;
           }
 
           .control-btn {
-            width: 50px;
-            height: 50px;
-          }
-
-          .control-btn svg {
-            width: 18px;
-            height: 18px;
+            width: min(50px, 6vh);
+            height: min(50px, 6vh);
           }
 
           .image-content {
-            max-height: 250px;
+            height: 30%;
           }
 
           .nav-dot {
-            width: 10px;
-            height: 10px;
+            width: min(10px, 1vh);
+            height: min(10px, 1vh);
           }
 
           .nav-item.active .nav-dot::before {
-            width: 20px;
-            height: 20px;
+            width: min(20px, 2vh);
+            height: min(20px, 2vh);
           }
         }
       </style>
@@ -743,6 +728,15 @@ class ProductJourneySlider extends HTMLElement {
       });
     });
 
+    // Setup mouse enter/leave detection
+    this.addEventListener('mouseenter', () => {
+      this.isMouseOver = true;
+    });
+
+    this.addEventListener('mouseleave', () => {
+      this.isMouseOver = false;
+    });
+
     // Setup scroll and touch handlers
     this.setupScrollNavigation();
     this.setupTouchNavigation();
@@ -756,31 +750,28 @@ class ProductJourneySlider extends HTMLElement {
 
     // Remove old listener if exists
     if (this.wheelHandler) {
-      window.removeEventListener('wheel', this.wheelHandler);
+      document.removeEventListener('wheel', this.wheelHandler);
     }
 
     this.wheelHandler = (e) => {
-      // Only handle scroll when element is in viewport
-      const rect = this.getBoundingClientRect();
-      const isInView = rect.top <= window.innerHeight && rect.bottom >= 0;
-      
-      if (!isInView) return;
+      // Only handle scroll when mouse is over the element
+      if (!this.isMouseOver) return;
 
-      // If scrolling down on last slide, allow normal scroll to continue
-      if (this.currentSlide === slideCount - 1 && e.deltaY > 0) {
-        return; // Don't preventDefault, let page scroll continue
-      }
-
-      // If scrolling up on first slide, allow normal scroll to continue
+      // If on first slide and scrolling up, allow page scroll
       if (this.currentSlide === 0 && e.deltaY < 0) {
-        return; // Don't preventDefault, let page scroll continue
+        return;
       }
 
-      // Otherwise, prevent default scroll and change slides
-      if (this.isScrolling) return;
+      // If on last slide and scrolling down, allow page scroll
+      if (this.currentSlide === slideCount - 1 && e.deltaY > 0) {
+        return;
+      }
 
+      // Prevent page scroll and handle slide change
       e.preventDefault();
       
+      if (this.isScrolling) return;
+
       this.isScrolling = true;
       setTimeout(() => {
         this.isScrolling = false;
@@ -789,43 +780,33 @@ class ProductJourneySlider extends HTMLElement {
       if (e.deltaY > 0) {
         this.changeSlide(1);
       } else {
-        this.changeSlide(1);
+        this.changeSlide(-1);
       }
     };
 
-    window.addEventListener('wheel', this.wheelHandler, { passive: false });
+    document.addEventListener('wheel', this.wheelHandler, { passive: false });
   }
 
   setupTouchNavigation() {
     // Remove old listeners if exist
     if (this.touchStartHandler) {
-      window.removeEventListener('touchstart', this.touchStartHandler);
+      this.removeEventListener('touchstart', this.touchStartHandler);
     }
     if (this.touchEndHandler) {
-      window.removeEventListener('touchend', this.touchEndHandler);
+      this.removeEventListener('touchend', this.touchEndHandler);
     }
 
     this.touchStartHandler = (e) => {
-      const rect = this.getBoundingClientRect();
-      const isInView = rect.top <= window.innerHeight && rect.bottom >= 0;
-      
-      if (!isInView) return;
-
       this.touchStartY = e.changedTouches[0].screenY;
     };
 
     this.touchEndHandler = (e) => {
-      const rect = this.getBoundingClientRect();
-      const isInView = rect.top <= window.innerHeight && rect.bottom >= 0;
-      
-      if (!isInView) return;
-
       this.touchEndY = e.changedTouches[0].screenY;
       this.handleSwipe();
     };
 
-    window.addEventListener('touchstart', this.touchStartHandler);
-    window.addEventListener('touchend', this.touchEndHandler);
+    this.addEventListener('touchstart', this.touchStartHandler);
+    this.addEventListener('touchend', this.touchEndHandler);
   }
 
   handleSwipe() {
@@ -834,18 +815,16 @@ class ProductJourneySlider extends HTMLElement {
 
     // Swipe up (next slide)
     if (this.touchStartY - this.touchEndY > swipeThreshold) {
-      // If on last slide, don't prevent - let page scroll
       if (this.currentSlide === slideCount - 1) {
-        return;
+        return; // Allow page scroll
       }
       this.changeSlide(1);
     }
 
     // Swipe down (previous slide)
     if (this.touchEndY - this.touchStartY > swipeThreshold) {
-      // If on first slide, don't prevent - let page scroll
       if (this.currentSlide === 0) {
-        return;
+        return; // Allow page scroll
       }
       this.changeSlide(-1);
     }
@@ -857,7 +836,7 @@ class ProductJourneySlider extends HTMLElement {
     const slideCount = Math.min(Math.max(1, parseInt(this.settings.slideCount) || 5), 8);
     let newSlide = this.currentSlide + direction;
 
-    // Clamp to valid range (don't loop)
+    // Clamp to valid range
     if (newSlide < 0) newSlide = 0;
     if (newSlide >= slideCount) newSlide = slideCount - 1;
 
@@ -922,7 +901,6 @@ class ProductJourneySlider extends HTMLElement {
     if (delay > 0) {
       this.autoplayInterval = setInterval(() => {
         const slideCount = Math.min(Math.max(1, parseInt(this.settings.slideCount) || 5), 8);
-        // Loop back to first slide when autoplay reaches the end
         if (this.currentSlide === slideCount - 1) {
           this.goToSlide(0);
         } else {
@@ -947,15 +925,14 @@ class ProductJourneySlider extends HTMLElement {
   cleanup() {
     this.stopAutoplay();
     
-    // Remove event listeners
     if (this.wheelHandler) {
-      window.removeEventListener('wheel', this.wheelHandler);
+      document.removeEventListener('wheel', this.wheelHandler);
     }
     if (this.touchStartHandler) {
-      window.removeEventListener('touchstart', this.touchStartHandler);
+      this.removeEventListener('touchstart', this.touchStartHandler);
     }
     if (this.touchEndHandler) {
-      window.removeEventListener('touchend', this.touchEndHandler);
+      this.removeEventListener('touchend', this.touchEndHandler);
     }
   }
 }
