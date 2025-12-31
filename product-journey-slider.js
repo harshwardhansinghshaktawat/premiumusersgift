@@ -123,16 +123,15 @@ class ProductJourneySlider extends HTMLElement {
         :host {
           display: block;
           width: 100%;
-          /* MODIFICATION: Changed from fixed 500px to 100vh (Viewport Height) */
-          /* This forces the slider to always fill the user's screen height */
-          height: 100vh; 
-          font-family: ${s.bodyFont}, sans-serif;
+          height: 100%; /* Fill the Wix Custom Element box */
           position: relative;
-          overflow: hidden;
+          overflow: hidden; /* Prevent content from pushing the box size */
         }
 
         .slider-container {
-          position: relative;
+          position: absolute; /* Vital: Removes element from flow to prevent infinite loop */
+          top: 0;
+          left: 0;
           width: 100%;
           height: 100%;
           overflow: hidden;
