@@ -13,6 +13,13 @@ class ProductJourneySlider extends HTMLElement {
     this.wheelHandler = null;
     this.touchStartHandler = null;
     this.touchEndHandler = null;
+    
+    // Set element dimensions programmatically like ThreeDImageElement
+    this.style.width = '100%';
+    this.style.height = '100%';
+    this.style.display = 'block';
+    this.style.position = 'relative';
+    this.style.overflow = 'hidden';
   }
 
   static get observedAttributes() {
@@ -37,6 +44,13 @@ class ProductJourneySlider extends HTMLElement {
 
   connectedCallback() {
     console.log('Product Journey Slider connected');
+    // Reinforce styles on connect
+    this.style.width = '100%';
+    this.style.height = '100%';
+    this.style.display = 'block';
+    this.style.position = 'relative';
+    this.style.overflow = 'hidden';
+    
     this.render();
     this.init();
   }
@@ -130,7 +144,9 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         .slider-container {
-          position: relative;
+          position: absolute;
+          top: 0;
+          left: 0;
           width: 100%;
           height: 100%;
           overflow: hidden;
@@ -170,7 +186,9 @@ class ProductJourneySlider extends HTMLElement {
         }
 
         .slides-wrapper {
-          position: relative;
+          position: absolute;
+          top: 0;
+          left: 0;
           width: 100%;
           height: 100%;
         }
