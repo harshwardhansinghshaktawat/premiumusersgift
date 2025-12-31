@@ -14,7 +14,6 @@ class ProductJourneySlider extends HTMLElement {
     this.touchStartHandler = null;
     this.touchEndHandler = null;
     this.isMouseOver = false;
-    this.isFullyInView = false;
   }
 
   static get observedAttributes() {
@@ -22,7 +21,7 @@ class ProductJourneySlider extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    if (name === 'data' && newValue && newValue !== oldValue) {
+    if (name === 'data' && newValue) {
       try {
         const parsed = JSON.parse(newValue);
         this.settings = { ...this.getDefaultSettings(), ...parsed };
@@ -31,25 +30,14 @@ class ProductJourneySlider extends HTMLElement {
         this.init();
       } catch (e) {
         console.error('Failed to parse slider data:', e);
+        this.render();
+        this.init();
       }
     }
   }
 
   connectedCallback() {
     console.log('Product Journey Slider connected');
-    
-    // Set explicit styles like the pie chart example
-    Object.assign(this.style, {
-      display: 'block',
-      width: '100%',
-      height: '600px', // Default height, can be resized by Wix
-      position: 'relative',
-      overflow: 'hidden',
-      padding: '0',
-      margin: '0',
-      boxSizing: 'border-box'
-    });
-    
     this.render();
     this.init();
   }
@@ -118,540 +106,538 @@ class ProductJourneySlider extends HTMLElement {
     };
   }
 
-  createStyle() {
-    const s = this.settings;
-    const styleElement = document.createElement('style');
-    styleElement.textContent = `
-      @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;600;700&display=swap');
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      .slider-container {
-        display: block;
-        width: 100%;
-        height: 100%;
-        position: relative;
-        overflow: hidden;
-        background: ${s.bgDark};
-      }
-
-      .bg-gradient {
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle at center, rgba(0, 217, 255, 0.1) 0%, transparent 50%);
-        animation: rotate 30s linear infinite;
-        pointer-events: none;
-      }
-
-      @keyframes rotate {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-      }
-
-      .progress-bar {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: ${s.bgSecondary};
-        z-index: 1000;
-      }
-
-      .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, ${s.accentCyan}, ${s.accentPurple});
-        transition: width ${s.animationSpeed}ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .slides-wrapper {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-      }
-
-      .slide {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity ${s.animationSpeed}ms ease, visibility ${s.animationSpeed}ms ease;
-        padding: 5% 4% 10% 4%;
-      }
-
-      .slide.active {
-        opacity: 1;
-        visibility: visible;
-        z-index: 1;
-      }
-
-      .slide-content {
-        width: 100%;
-        max-width: 1400px;
-        height: 100%;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 80px;
-        align-items: center;
-      }
-
-      .text-content {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        height: 100%;
-        transform: translateX(-100px);
-        opacity: 0;
-        transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .slide.active .text-content {
-        transform: translateX(0);
-        opacity: 1;
-        transition-delay: 0.3s;
-      }
-
-      .accent-line {
-        width: 100px;
-        height: 2px;
-        background: linear-gradient(90deg, ${s.accentCyan}, transparent);
-        margin-bottom: 30px;
-        opacity: 0;
-        transform: translateX(-50px);
-        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        flex-shrink: 0;
-      }
-
-      .slide.active .accent-line {
-        opacity: 1;
-        transform: translateX(0);
-        transition-delay: 0.8s;
-      }
-
-      .slide-number {
-        font-family: ${s.numberFont}, sans-serif;
-        font-size: clamp(40px, 8vw, 120px);
-        line-height: 1;
-        background: linear-gradient(135deg, ${s.accentCyan}, ${s.accentPurple});
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 20px;
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        flex-shrink: 0;
-      }
-
-      .slide.active .slide-number {
-        opacity: 1;
-        transform: translateY(0);
-        transition-delay: 0.4s;
-      }
-
-      .stage-label {
-        font-family: ${s.labelFont}, sans-serif;
-        font-size: clamp(30px, 6vw, 80px);
-        line-height: 1.1;
-        margin-bottom: 10px;
-        letter-spacing: 2px;
-        color: ${s.textPrimary};
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        flex-shrink: 0;
-      }
-
-      .slide.active .stage-label {
-        opacity: 1;
-        transform: translateY(0);
-        transition-delay: 0.5s;
-      }
-
-      .tagline {
-        font-size: clamp(11px, 1.2vw, 16px);
-        font-weight: 300;
-        color: ${s.textSecondary};
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        margin-bottom: 30px;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        flex-shrink: 0;
-      }
-
-      .slide.active .tagline {
-        opacity: 1;
-        transform: translateY(0);
-        transition-delay: 0.6s;
-      }
-
-      .description {
-        font-size: clamp(13px, 1.4vw, 18px);
-        line-height: 1.8;
-        color: ${s.textSecondary};
-        max-width: 500px;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .slide.active .description {
-        opacity: 1;
-        transform: translateY(0);
-        transition-delay: 0.7s;
-      }
-
-      .image-content {
-        position: relative;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        transform: scale(0.9) translateX(100px);
-        opacity: 0;
-        transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .slide.active .image-content {
-        transform: scale(1) translateX(0);
-        opacity: 1;
-        transition-delay: 0.4s;
-      }
-
-      .image-wrapper {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        max-height: 80%;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
-      }
-
-      .image-wrapper::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(184, 41, 255, 0.2));
-        z-index: 1;
-        opacity: 0;
-        transition: opacity 0.4s ease;
-      }
-
-      .image-wrapper:hover::before {
-        opacity: 1;
-      }
-
-      .product-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .image-wrapper:hover .product-image {
-        transform: scale(1.05);
-      }
-
-      .navigation {
-        position: absolute;
-        right: 40px;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 100;
-      }
-
-      .nav-item {
-        position: relative;
-        display: flex;
-        align-items: center;
-        margin: 25px 0;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-
-      .nav-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: ${s.bgSecondary};
-        border: 2px solid ${s.textMuted};
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        position: relative;
-      }
-
-      .nav-item:hover .nav-dot {
-        background: ${s.accentCyan};
-        border-color: ${s.accentCyan};
-        transform: scale(1.2);
-      }
-
-      .nav-item.active .nav-dot {
-        background: ${s.accentCyan};
-        border-color: ${s.accentCyan};
-        transform: scale(1.3);
-      }
-
-      .nav-item.active .nav-dot::before {
-        content: '';
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        border: 2px solid ${s.accentCyan};
-        border-radius: 50%;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        animation: pulse 2s infinite;
-      }
-
-      @keyframes pulse {
-        0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        50% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
-      }
-
-      .nav-label {
-        position: absolute;
-        right: 25px;
-        white-space: nowrap;
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        color: ${s.textMuted};
-        opacity: 0;
-        transform: translateX(10px);
-        transition: all 0.3s ease;
-        pointer-events: none;
-      }
-
-      .nav-item:hover .nav-label,
-      .nav-item.active .nav-label {
-        opacity: 1;
-        transform: translateX(0);
-        color: ${s.textPrimary};
-      }
-
-      .controls {
-        position: absolute;
-        bottom: 40px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        gap: 30px;
-        z-index: 100;
-      }
-
-      .control-btn {
-        position: relative;
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        background: rgba(26, 26, 26, 0.6);
-        backdrop-filter: blur(20px);
-        color: ${s.textPrimary};
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        overflow: hidden;
-      }
-
-      .control-btn::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scale(0);
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: linear-gradient(135deg, ${s.accentCyan}, ${s.accentPurple});
-        opacity: 0;
-        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        z-index: -1;
-      }
-
-      .control-btn:hover::before {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 0.2;
-      }
-
-      .control-btn:hover {
-        border-color: ${s.accentCyan};
-        transform: scale(1.1);
-        box-shadow: 0 10px 40px rgba(0, 217, 255, 0.3);
-      }
-
-      .control-btn:active {
-        transform: scale(0.95);
-      }
-
-      .control-btn svg {
-        width: 24px;
-        height: 24px;
-        transition: transform 0.3s ease;
-      }
-
-      .control-btn:hover svg {
-        transform: scale(1.2);
-      }
-
-      /* Responsive Breakpoints */
-      @media (max-width: 1024px) {
-        .slide-content {
-          grid-template-columns: 1fr;
-          gap: 40px;
-        }
-
-        .slide {
-          padding: 50px 30px 100px 30px;
-        }
-
-        .text-content {
-          text-align: center;
-          transform: none !important;
-        }
-
-        .image-content {
-          transform: none !important;
-          max-height: 350px;
-        }
-
-        .slide.active .text-content,
-        .slide.active .image-content {
-          transform: none !important;
-        }
-
-        .accent-line {
-          margin-left: auto;
-          margin-right: auto;
-        }
-
-        .description {
-          max-width: 100%;
-        }
-
-        .navigation {
-          right: 20px;
-        }
-      }
-
-      @media (max-width: 768px) {
-        .slide {
-          padding: 40px 20px 90px 20px;
-        }
-
-        .slide-content {
-          gap: 30px;
-        }
-
-        .navigation {
-          right: 15px;
-        }
-
-        .nav-item {
-          margin: 20px 0;
-        }
-
-        .controls {
-          bottom: 30px;
-          gap: 25px;
-        }
-
-        .control-btn {
-          width: 60px;
-          height: 60px;
-        }
-
-        .control-btn svg {
-          width: 20px;
-          height: 20px;
-        }
-
-        .image-content {
-          max-height: 300px;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .slide {
-          padding: 30px 15px 80px 15px;
-        }
-
-        .slide-content {
-          gap: 25px;
-        }
-
-        .navigation {
-          right: 10px;
-        }
-
-        .controls {
-          bottom: 20px;
-          gap: 20px;
-        }
-
-        .control-btn {
-          width: 50px;
-          height: 50px;
-        }
-
-        .control-btn svg {
-          width: 18px;
-          height: 18px;
-        }
-
-        .image-content {
-          max-height: 250px;
-        }
-
-        .nav-dot {
-          width: 10px;
-          height: 10px;
-        }
-
-        .nav-item.active .nav-dot::before {
-          width: 20px;
-          height: 20px;
-        }
-      }
-    `;
-    return styleElement;
-  }
-
   render() {
     const s = this.settings;
     const slideCount = Math.min(Math.max(1, parseInt(s.slideCount) || 5), 8);
     const HeadingTag = s.headingTag || 'h2';
 
-    // Clear shadow root
-    this.shadowRoot.innerHTML = '';
+    const styles = `
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;600;700&display=swap');
 
-    // Add style element
-    const styleElement = this.createStyle();
-    this.shadowRoot.appendChild(styleElement);
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        :host {
+          display: block;
+          width: 100%;
+          height: 100%;
+          min-height: 600px;
+          font-family: ${s.bodyFont}, sans-serif;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .slider-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          min-height: 600px;
+          overflow: hidden;
+          background: ${s.bgDark};
+        }
+
+        .bg-gradient {
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(circle at center, rgba(0, 217, 255, 0.1) 0%, transparent 50%);
+          animation: rotate 30s linear infinite;
+          pointer-events: none;
+        }
+
+        @keyframes rotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 3px;
+          background: ${s.bgSecondary};
+          z-index: 1000;
+        }
+
+        .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, ${s.accentCyan}, ${s.accentPurple});
+          transition: width ${s.animationSpeed}ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .slides-wrapper {
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
+
+        .slide {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity ${s.animationSpeed}ms ease, visibility ${s.animationSpeed}ms ease;
+          padding: 5% 4% 10% 4%;
+        }
+
+        .slide.active {
+          opacity: 1;
+          visibility: visible;
+          z-index: 1;
+        }
+
+        .slide-content {
+          width: 100%;
+          max-width: 1400px;
+          height: 100%;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 80px;
+          align-items: center;
+        }
+
+        .text-content {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          height: 100%;
+          transform: translateX(-100px);
+          opacity: 0;
+          transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .slide.active .text-content {
+          transform: translateX(0);
+          opacity: 1;
+          transition-delay: 0.3s;
+        }
+
+        .accent-line {
+          width: 100px;
+          height: 2px;
+          background: linear-gradient(90deg, ${s.accentCyan}, transparent);
+          margin-bottom: 30px;
+          opacity: 0;
+          transform: translateX(-50px);
+          transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          flex-shrink: 0;
+        }
+
+        .slide.active .accent-line {
+          opacity: 1;
+          transform: translateX(0);
+          transition-delay: 0.8s;
+        }
+
+        .slide-number {
+          font-family: ${s.numberFont}, sans-serif;
+          font-size: clamp(40px, 8vw, 120px);
+          line-height: 1;
+          background: linear-gradient(135deg, ${s.accentCyan}, ${s.accentPurple});
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          margin-bottom: 20px;
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          flex-shrink: 0;
+        }
+
+        .slide.active .slide-number {
+          opacity: 1;
+          transform: translateY(0);
+          transition-delay: 0.4s;
+        }
+
+        .stage-label {
+          font-family: ${s.labelFont}, sans-serif;
+          font-size: clamp(30px, 6vw, 80px);
+          line-height: 1.1;
+          margin-bottom: 10px;
+          letter-spacing: 2px;
+          color: ${s.textPrimary};
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          flex-shrink: 0;
+        }
+
+        .slide.active .stage-label {
+          opacity: 1;
+          transform: translateY(0);
+          transition-delay: 0.5s;
+        }
+
+        .tagline {
+          font-size: clamp(11px, 1.2vw, 16px);
+          font-weight: 300;
+          color: ${s.textSecondary};
+          text-transform: uppercase;
+          letter-spacing: 4px;
+          margin-bottom: 30px;
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          flex-shrink: 0;
+        }
+
+        .slide.active .tagline {
+          opacity: 1;
+          transform: translateY(0);
+          transition-delay: 0.6s;
+        }
+
+        .description {
+          font-size: clamp(13px, 1.4vw, 18px);
+          line-height: 1.8;
+          color: ${s.textSecondary};
+          max-width: 500px;
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .slide.active .description {
+          opacity: 1;
+          transform: translateY(0);
+          transition-delay: 0.7s;
+        }
+
+        .image-content {
+          position: relative;
+          height: 100%;
+          max-height: 500px;
+          display: flex;
+          align-items: center;
+          transform: scale(0.9) translateX(100px);
+          opacity: 0;
+          transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .slide.active .image-content {
+          transform: scale(1) translateX(0);
+          opacity: 1;
+          transition-delay: 0.4s;
+        }
+
+        .image-wrapper {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+        }
+
+        .image-wrapper::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(184, 41, 255, 0.2));
+          z-index: 1;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+        }
+
+        .image-wrapper:hover::before {
+          opacity: 1;
+        }
+
+        .product-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .image-wrapper:hover .product-image {
+          transform: scale(1.05);
+        }
+
+        .navigation {
+          position: absolute;
+          right: 40px;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 100;
+        }
+
+        .nav-item {
+          position: relative;
+          display: flex;
+          align-items: center;
+          margin: 25px 0;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .nav-dot {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background: ${s.bgSecondary};
+          border: 2px solid ${s.textMuted};
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          position: relative;
+        }
+
+        .nav-item:hover .nav-dot {
+          background: ${s.accentCyan};
+          border-color: ${s.accentCyan};
+          transform: scale(1.2);
+        }
+
+        .nav-item.active .nav-dot {
+          background: ${s.accentCyan};
+          border-color: ${s.accentCyan};
+          transform: scale(1.3);
+        }
+
+        .nav-item.active .nav-dot::before {
+          content: '';
+          position: absolute;
+          width: 24px;
+          height: 24px;
+          border: 2px solid ${s.accentCyan};
+          border-radius: 50%;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+          50% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+        }
+
+        .nav-label {
+          position: absolute;
+          right: 25px;
+          white-space: nowrap;
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 2px;
+          color: ${s.textMuted};
+          opacity: 0;
+          transform: translateX(10px);
+          transition: all 0.3s ease;
+          pointer-events: none;
+        }
+
+        .nav-item:hover .nav-label,
+        .nav-item.active .nav-label {
+          opacity: 1;
+          transform: translateX(0);
+          color: ${s.textPrimary};
+        }
+
+        .controls {
+          position: absolute;
+          bottom: 40px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          gap: 30px;
+          z-index: 100;
+        }
+
+        .control-btn {
+          position: relative;
+          width: 70px;
+          height: 70px;
+          border-radius: 50%;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          background: rgba(26, 26, 26, 0.6);
+          backdrop-filter: blur(20px);
+          color: ${s.textPrimary};
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          overflow: hidden;
+        }
+
+        .control-btn::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%) scale(0);
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: linear-gradient(135deg, ${s.accentCyan}, ${s.accentPurple});
+          opacity: 0;
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          z-index: -1;
+        }
+
+        .control-btn:hover::before {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 0.2;
+        }
+
+        .control-btn:hover {
+          border-color: ${s.accentCyan};
+          transform: scale(1.1);
+          box-shadow: 0 10px 40px rgba(0, 217, 255, 0.3);
+        }
+
+        .control-btn:active {
+          transform: scale(0.95);
+        }
+
+        .control-btn svg {
+          width: 24px;
+          height: 24px;
+          transition: transform 0.3s ease;
+        }
+
+        .control-btn:hover svg {
+          transform: scale(1.2);
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+          .slide-content {
+            grid-template-columns: 1fr;
+            gap: 40px;
+          }
+
+          .slide {
+            padding: 50px 30px 100px 30px;
+          }
+
+          .text-content {
+            text-align: center;
+            transform: none !important;
+          }
+
+          .image-content {
+            transform: none !important;
+            max-height: 350px;
+          }
+
+          .slide.active .text-content,
+          .slide.active .image-content {
+            transform: none !important;
+          }
+
+          .accent-line {
+            margin-left: auto;
+            margin-right: auto;
+          }
+
+          .description {
+            max-width: 100%;
+          }
+
+          .navigation {
+            right: 20px;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .slide {
+            padding: 40px 20px 90px 20px;
+          }
+
+          .slide-content {
+            gap: 30px;
+          }
+
+          .navigation {
+            right: 15px;
+          }
+
+          .nav-item {
+            margin: 20px 0;
+          }
+
+          .controls {
+            bottom: 30px;
+            gap: 25px;
+          }
+
+          .control-btn {
+            width: 60px;
+            height: 60px;
+          }
+
+          .control-btn svg {
+            width: 20px;
+            height: 20px;
+          }
+
+          .image-content {
+            max-height: 300px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .slide {
+            padding: 30px 15px 80px 15px;
+          }
+
+          .slide-content {
+            gap: 25px;
+          }
+
+          .navigation {
+            right: 10px;
+          }
+
+          .controls {
+            bottom: 20px;
+            gap: 20px;
+          }
+
+          .control-btn {
+            width: 50px;
+            height: 50px;
+          }
+
+          .control-btn svg {
+            width: 18px;
+            height: 18px;
+          }
+
+          .image-content {
+            max-height: 250px;
+          }
+
+          .nav-dot {
+            width: 10px;
+            height: 10px;
+          }
+
+          .nav-item.active .nav-dot::before {
+            width: 20px;
+            height: 20px;
+          }
+        }
+      </style>
+    `;
 
     const slides = Array.from({ length: slideCount }, (_, i) => {
       const num = i + 1;
@@ -692,39 +678,37 @@ class ProductJourneySlider extends HTMLElement {
       `;
     }).join('');
 
-    // Create container
-    const container = document.createElement('div');
-    container.className = 'slider-container';
-    container.innerHTML = `
-      <div class="bg-gradient"></div>
-      
-      <div class="progress-bar">
-        <div class="progress-fill" style="width: ${(1 / slideCount) * 100}%"></div>
-      </div>
+    this.shadowRoot.innerHTML = `
+      ${styles}
+      <div class="slider-container">
+        <div class="bg-gradient"></div>
+        
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${(1 / slideCount) * 100}%"></div>
+        </div>
 
-      <div class="slides-wrapper">
-        ${slides}
-      </div>
+        <div class="slides-wrapper">
+          ${slides}
+        </div>
 
-      <div class="navigation">
-        ${navItems}
-      </div>
+        <div class="navigation">
+          ${navItems}
+        </div>
 
-      <div class="controls">
-        <button class="control-btn prev-btn" aria-label="Previous slide">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-        <button class="control-btn next-btn" aria-label="Next slide">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
+        <div class="controls">
+          <button class="control-btn prev-btn" aria-label="Previous slide">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button class="control-btn next-btn" aria-label="Next slide">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
       </div>
     `;
-
-    this.shadowRoot.appendChild(container);
   }
 
   init() {
@@ -765,6 +749,7 @@ class ProductJourneySlider extends HTMLElement {
       });
     });
 
+    // Setup mouse enter/leave detection
     this.addEventListener('mouseenter', () => {
       this.isMouseOver = true;
     });
@@ -773,47 +758,37 @@ class ProductJourneySlider extends HTMLElement {
       this.isMouseOver = false;
     });
 
+    // Setup scroll and touch handlers
     this.setupScrollNavigation();
     this.setupTouchNavigation();
-    this.setupViewportDetection();
 
     this.updateDisplay();
     this.startAutoplay();
   }
 
-  setupViewportDetection() {
-    const checkViewport = () => {
-      const rect = this.getBoundingClientRect();
-      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-      
-      const topAtViewportTop = rect.top <= 50 && rect.top >= -50;
-      const fillsViewport = rect.bottom >= windowHeight - 50;
-      
-      this.isFullyInView = topAtViewportTop && fillsViewport;
-    };
-
-    window.addEventListener('scroll', checkViewport, { passive: true });
-    window.addEventListener('resize', checkViewport, { passive: true });
-    
-    setTimeout(checkViewport, 100);
-  }
-
   setupScrollNavigation() {
     const slideCount = Math.min(Math.max(1, parseInt(this.settings.slideCount) || 5), 8);
 
+    // Remove old listener if exists
     if (this.wheelHandler) {
       document.removeEventListener('wheel', this.wheelHandler);
     }
 
     this.wheelHandler = (e) => {
-      if (!this.isMouseOver || !this.isFullyInView) return;
+      // Only handle scroll when mouse is over the element
+      if (!this.isMouseOver) return;
 
-      const scrollingDown = e.deltaY > 0;
-      const scrollingUp = e.deltaY < 0;
+      // If on first slide and scrolling up, allow page scroll
+      if (this.currentSlide === 0 && e.deltaY < 0) {
+        return;
+      }
 
-      if (this.currentSlide === 0 && scrollingUp) return;
-      if (this.currentSlide === slideCount - 1 && scrollingDown) return;
+      // If on last slide and scrolling down, allow page scroll
+      if (this.currentSlide === slideCount - 1 && e.deltaY > 0) {
+        return;
+      }
 
+      // Prevent page scroll and handle slide change
       e.preventDefault();
       
       if (this.isScrolling) return;
@@ -823,7 +798,7 @@ class ProductJourneySlider extends HTMLElement {
         this.isScrolling = false;
       }, this.settings.animationSpeed);
 
-      if (scrollingDown) {
+      if (e.deltaY > 0) {
         this.changeSlide(1);
       } else {
         this.changeSlide(-1);
@@ -834,6 +809,7 @@ class ProductJourneySlider extends HTMLElement {
   }
 
   setupTouchNavigation() {
+    // Remove old listeners if exist
     if (this.touchStartHandler) {
       this.removeEventListener('touchstart', this.touchStartHandler);
     }
@@ -842,31 +818,35 @@ class ProductJourneySlider extends HTMLElement {
     }
 
     this.touchStartHandler = (e) => {
-      if (!this.isFullyInView) return;
       this.touchStartY = e.changedTouches[0].screenY;
     };
 
     this.touchEndHandler = (e) => {
-      if (!this.isFullyInView) return;
       this.touchEndY = e.changedTouches[0].screenY;
       this.handleSwipe();
     };
 
-    this.addEventListener('touchstart', this.touchStartHandler, { passive: true });
-    this.addEventListener('touchend', this.touchEndHandler, { passive: true });
+    this.addEventListener('touchstart', this.touchStartHandler);
+    this.addEventListener('touchend', this.touchEndHandler);
   }
 
   handleSwipe() {
     const slideCount = Math.min(Math.max(1, parseInt(this.settings.slideCount) || 5), 8);
     const swipeThreshold = 50;
 
+    // Swipe up (next slide)
     if (this.touchStartY - this.touchEndY > swipeThreshold) {
-      if (this.currentSlide === slideCount - 1) return;
+      if (this.currentSlide === slideCount - 1) {
+        return; // Allow page scroll
+      }
       this.changeSlide(1);
     }
 
+    // Swipe down (previous slide)
     if (this.touchEndY - this.touchStartY > swipeThreshold) {
-      if (this.currentSlide === 0) return;
+      if (this.currentSlide === 0) {
+        return; // Allow page scroll
+      }
       this.changeSlide(-1);
     }
   }
@@ -877,6 +857,7 @@ class ProductJourneySlider extends HTMLElement {
     const slideCount = Math.min(Math.max(1, parseInt(this.settings.slideCount) || 5), 8);
     let newSlide = this.currentSlide + direction;
 
+    // Clamp to valid range
     if (newSlide < 0) newSlide = 0;
     if (newSlide >= slideCount) newSlide = slideCount - 1;
 
