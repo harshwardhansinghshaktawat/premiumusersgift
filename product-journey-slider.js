@@ -37,10 +37,6 @@ class ProductJourneySlider extends HTMLElement {
 
   connectedCallback() {
     console.log('Product Journey Slider connected');
-    // Set element dimensions programmatically like ThreeDImageElement
-    this.style.width = '100%';
-    this.style.height = '100%';
-    this.style.display = 'block';
     this.render();
     this.init();
   }
@@ -128,6 +124,7 @@ class ProductJourneySlider extends HTMLElement {
           display: block;
           width: 100%;
           height: 100%;
+          min-height: 500px;
           font-family: ${s.bodyFont}, sans-serif;
           position: relative;
           overflow: hidden;
@@ -137,6 +134,7 @@ class ProductJourneySlider extends HTMLElement {
           position: relative;
           width: 100%;
           height: 100%;
+          min-height: 500px;
           overflow: hidden;
           background: ${s.bgDark};
         }
@@ -316,6 +314,7 @@ class ProductJourneySlider extends HTMLElement {
         .image-content {
           position: relative;
           height: 100%;
+          max-height: 500px;
           display: flex;
           align-items: center;
           transform: scale(0.9) translateX(100px);
@@ -530,6 +529,7 @@ class ProductJourneySlider extends HTMLElement {
 
           .image-content {
             transform: none !important;
+            max-height: 350px;
           }
 
           .slide.active .text-content,
@@ -582,6 +582,10 @@ class ProductJourneySlider extends HTMLElement {
             width: 20px;
             height: 20px;
           }
+
+          .image-content {
+            max-height: 300px;
+          }
         }
 
         @media (max-width: 480px) {
@@ -610,6 +614,10 @@ class ProductJourneySlider extends HTMLElement {
           .control-btn svg {
             width: 18px;
             height: 18px;
+          }
+
+          .image-content {
+            max-height: 250px;
           }
 
           .nav-dot {
@@ -953,3 +961,13 @@ class ProductJourneySlider extends HTMLElement {
 }
 
 customElements.define('product-journey-slider', ProductJourneySlider);
+
+export const STYLE = `
+  product-journey-slider {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: hidden;
+    position: relative;
+  }
+`;
